@@ -1,10 +1,10 @@
-#' A single simulated set of Stroke Events for specific state_code or county_code.
-#' @param stroke_rate  Data frame with Hospitalization Average Rate per 1,000 Medicare Beneficiaries and cnty_fips (2014-2020) (Data from CDC).
-#' @param population  Data frame with population by cnty_fips ages 65+ (Census Data).
-#' @param density RasterLayer with population density in CONTINENTAL U.S. excluding AK. 
-#' @param counties shape file, geometry of counties (Census data, ONLY CONTINENTAL U.S. excluding AK).
+#' A simulated set of stroke events for a specific state or county.
+#' @param rate  Data frame with Hospitalization Average Rate per 1,000 Medicare Beneficiaries and counties FIPS, ages 65+ (Data from CDC Interactive Atlas of Heart Disease and Stroke, 2014-2020).
+#' @param population  Data frame with population by county, ages 65+ (Census Data).
+#' @param density RasterLayer with population density in continental U.S. (excluding AK). 
+#' @param counties Shape file with geometry of counties (Census data).
 #' @param state_code State Code, example: "01".
-#' @param county_code county_code, example: "003".
+#' @param county_code County FIP, example: "003".
 #' @param ... Further arguments passed to exact_extract in the default setup.
 #' @import dplyr 
 #' @import exactextractr
@@ -13,24 +13,23 @@
 #' @import sf
 #' @return A data frame including
 #' 
+#' \code{longitude} Longitude.
 #' 
-#' \code{longitude} Coordinates,
+#' \code{latitude} Latitude.
 #' 
-#' \code{latitude} Coordinates,
+#' \code{stroke_type} Stroke type: Ischemic, Hemorrhagic, and Mimic.
 #' 
-#' \code{stroke_type} ,
+#' \code{category} Stroke Category: LVO, Non-LVO, Hemorrhagic, and Mimic.
 #' 
-#' \code{category} ,
+#' \code{cnty_fips} County FIP.
 #' 
-#' \code{cnty_fips} County fip,
-#' 
-#' \code{display_name} County name,
+#' \code{display_name} County name.
 #' 
 #' @author Ferney Henao-Ceballos
 #' 
 #' @description
 #' 
-#' Random Strokes 
+#' 
 #'     
 #'    
 #' @details
@@ -43,24 +42,24 @@
 
 
 
-GetStrokes <- function(stroke_rate, population, density, counties, state_code=FALSE, county_code=FALSE, warn = TRUE, years=1, ...){
+GetStrokes <- function(rate, population, density, counties, state_code=FALSE, county_code=FALSE, warn = TRUE, years=1, ...){
   
   # Checking warn
   if(!is.logical(warn) || length(warn) != 1){
     stop("warn must be either TRUE or FALSE")
   }
   
-  # Checking for valid values of stroke_rate
-  if(!("data.frame" %in%class(stroke_rate))){
-    stop("stroke_rate must be a data frame")
+  # Checking for valid values of rate
+  if(!("data.frame" %in%class(rate))){
+    stop("rate must be a data frame")
   }
   
-  names(stroke_rate) <- tolower(names(stroke_rate))
-  if(!all(names(stroke_rate) %in% c("cnty_fips", "ischemic_rate","hemorrhagic_rate","display_name"))){
-    stop("The stroke_rate data frame must have 'cnty_fips', 'hemorrhagic_rate', and 'ischemic_rate'")
+  names(rate) <- tolower(names(rate))
+  if(!all(names(rate) %in% c("cnty_fips", "ischemic_rate","hemorrhagic_rate","display_name"))){
+    stop("The rate data frame must have 'cnty_fips', 'hemorrhagic_rate', and 'ischemic_rate'")
   }
   
-  if(!all(nchar(stroke_rate$cnty_fips)==5)){
+  if(!all(nchar(rate$cnty_fips)==5)){
     stop("Invalid 'cnty_fips', this is a example of a valid 'cnty_fips': '01003'")
   }
 
@@ -105,20 +104,20 @@ GetStrokes <- function(stroke_rate, population, density, counties, state_code=FA
   # Random sample for specific state or county
   if(county_code==FALSE){
     counties<-counties%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
-    stroke_rate<-stroke_rate%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
+    rate<-rate%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
     population<-population%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
   }  
    else{counties<-counties%>%dplyr::filter(cnty_fips == county_code)
-        stroke_rate<-stroke_rate%>%dplyr::filter(cnty_fips == county_code)
+        rate<-rate%>%dplyr::filter(cnty_fips == county_code)
         population<-population%>%dplyr::filter(cnty_fips == county_code)
         }
      
   
   # Generating mu for Ischemic and Stroke events, the rate is per 1000 medicare beneficiaries
   # Assigning 0 to missing rates from CDC 
-  stroke_rate[is.na(stroke_rate)] <- 0
+  rate[is.na(rate)] <- 0
   
-  mu<-population|>dplyr::full_join(stroke_rate,by="cnty_fips")%>%dplyr::mutate(mu_ischemic=years*ischemic_rate*population/1e3, mu_hemorrhagic=years*hemorrhagic_rate*population/1e3)
+  mu<-population|>dplyr::full_join(rate,by="cnty_fips")%>%dplyr::mutate(mu_ischemic=years*ischemic_rate*population/1e3, mu_hemorrhagic=years*hemorrhagic_rate*population/1e3)
   
   mu_hemorrhagic_poisson<-rpois(rep(1,nrow(mu)),mu$mu_hemorrhagic)
   mu_ischemic_poisson<-rpois(rep(1,nrow(mu)),mu$mu_ischemic)
