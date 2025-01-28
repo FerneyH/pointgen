@@ -1,4 +1,4 @@
-#' A simulated set of stroke events for a specific state or county.
+#' A Simulated Set of Stroke Events for a Specific State or County.
 #' @param rate  Data frame with Hospitalization Average Rate per 1,000 Medicare Beneficiaries and counties FIPS, ages 65+ (Data from CDC Interactive Atlas of Heart Disease and Stroke, 2014-2020).
 #' @param population  Data frame with population by county, ages 65+ (Census Data).
 #' @param density RasterLayer with population density in continental U.S. (excluding AK). 
@@ -7,6 +7,7 @@
 #' @param county_code County FIP, example: "003".
 #' @param ... Further arguments passed to exact_extract in the default setup.
 #' @import dplyr 
+#' @import Rdpack
 #' @import exactextractr
 #' @import purrr
 #' @import tigris
@@ -28,14 +29,53 @@
 #' @author Ferney Henao-Ceballos
 #' 
 #' @description
+#' We use county-level stroke hospitalization rates from the CDC Interactive
+#' Atlas of Heart Disease and Stroke \insertCite{StrokeRates}{RandomStroke}, population 
+#' density data from the NASA Socioeconomic Data and Applications Center (SEDAC) 
+#' \insertCite{PopulationDensity}{RandomStroke}, and county population data from the U.S. Census Bureau (2023) 
+#' \insertCite{census_co_est2023}{RandomStroke} to generate random stroke events for any state or county in the continental United States.
 #' 
-#' 
-#'     
 #'    
 #' @details
+#' Stroke is the fifth leading cause of death in the United States, and its most severe form,
+#' large-vessel occlusion, accounts for over 60% of all stroke-related disabilities. 
+#' Endovascular therapy can significantly reduce stroke-related disability by 67% for
+#' qualifying patients, but this treatment is time-sensitive. Intravenous thrombolytic 
+#' therapy is also used for acute ischemic strokes and has been shown to be both effective 
+#' and time-sensitive. The location of the patient is crucial, as it directly affects 
+#' transport times to stroke centers and is closely correlated with delays in receiving 
+#' different treatments. Several research groups have developed promising modeling approaches
+#' to better understand the conditions under which treating patients at a local stroke center versus 
+#' directly transferring them to an endovascular stroke center yields better outcomes.
+#'
+#' We generate a realistic in-silico cohorts of stroke patients using the annual stroke hospitalization 
+#' rates obtained at a countywide level from 2014 to 2020 using the CDC Interactive Atlas of Heart Disease 
+#' and Stroke \insertCite{StrokeRates}{RandomStroke}, which provides ischemic and hemorrhagic metrics. 
+#' LVO/non-LVO and mimic event rates were determined using Emergency Department Stroke Visits in the 
+#' United States from 2016 to 2020. The strokes were distributed within counties in proportion to U.S. Census 
+#' Bureau (2023) population estimates \insertCite{census_co_est2023}{RandomStroke}. Latitude and longitude 
+#' of stroke events were generated randomly, weighted by the GPWv4 population density map \insertCite{PopulationDensity}{RandomStroke},
+#' which takes into account pixel area while uniformly distributing locations within each pixel. Finally, we employed an accept/reject algorithm
+#' based on county or state boundaries to accurately generate the locations within the chosen state or county. 
 #' 
-#' Random Strokes
-#'    
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{PopulationDensity}{RandomStroke}
+#'
+#' \insertRef{StrokeRates}{RandomStroke}
+#'
+#' \insertRef{census_co_est2023}{RandomStroke}
+#'
+#' \insertRef{R-exactextractr}{RandomStroke}
+#'
+#' \insertRef{R-purrr}{RandomStroke}
+#'
+#' \insertRef{R-sf}{RandomStroke}
+#'
+#' \insertRef{R-tigris}{RandomStroke}
+#'
+#' \insertRef{sf2023}{RandomStroke}
 #'
 #' 
 #' @export

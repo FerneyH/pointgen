@@ -1,11 +1,18 @@
-Package: Stroke
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Package: RandomStroke
+Title: A Simulated Set of Stroke Events for a Specific State or County.
+Version: 0.1.0
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Ferney", "Henao-Ceballos", , "fhenaoceballos@uiowa.edu", role = c("aut", "cre"))
+Maintainer: Ferney <fhenaoceballos@uiowa.edu>
+Description: We use county-level stroke hospitalization rates from the CDC Interactive Atlas of Heart Disease and Stroke, population density data from the NASA Socioeconomic Data and Applications Center (SEDAC), and county population data from the U.S. Census Bureau (2023) to generate random stroke events for any state or county in the continental United States.
+Depends: dplyr, exactextractr, purr, tigris, sf
+Imports: Rdpack
+RdMacros: Rdpack
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
