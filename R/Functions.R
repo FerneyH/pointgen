@@ -1,12 +1,225 @@
-#' A Simulated Set of Stroke Events for a Specific State or County.
-#' @param rate  Data frame with Hospitalization Average Rate per 1,000 Medicare Beneficiaries and counties FIPS, ages 65+ (Data from CDC Interactive Atlas of Heart Disease and Stroke, 2014-2020).
+#' Get population estimates by age group from Census PEP
+#'
+#' @param vintage PEP vintage year (e.g., 2022)
+#' @param year Year within the vintage
+#' @param breakdown The population breakdown used when product = "characteristics". 
+#' Acceptable values are "AGEGROUP", "RACE", "SEX", and "HISP", for
+#' Hispanic/Not Hispanic. These values can be combined in a vector, 
+#' returning population estimates in the value column for all combinations 
+#' of these breakdowns. For years 2020 and later, "AGE" is also available for 
+#' single-year age when using geography = "state".
+#' @param age_group Character keywords (e.g., "65plus", "18to64") or numeric AGEGROUP codes
+#' @param percent Logical, include percent of total population
+#' @param ... Additional arguments passed to tidycensus::get_estimates function
+#'
+#' @return Tibble with GEOID, NAME, population, and optional percent
+#' @import tidycensus
+#' @export
+ 
+get_population_age <- function(vintage   = 2022,
+                               year      = 2022,
+                               breakdown,
+                               age_group = "65plus",
+                               ...) 
+
+  # Sanity checks
+  if (!is.numeric(vintage) || !is.numeric(year)) {
+    stop("Both `vintage` and `year` must be numeric.")
+  }
+  
+  
+  if (year > vintage){
+    stop("`year` cannot exceed `vintage`.")
+  } 
+  
+  if (vintage >2022){
+    stop("The most recent `vintage` released is Vintage 2022.")
+  }
+  
+  # AGEGROUP reference codes
+  # Source: U.S. Census Bureau, Population Division
+  # Release date: June 2024
+ age_dict <- list(
+  total    = 0,
+  `0to4`   = 1,
+  `5to9`   = 2,
+  `10to14` = 3,
+  `15to19` = 4,
+  `20to24` = 5,
+  `25to29` = 6,
+  `30to34` = 7,
+  `35to39` = 8,
+  `40to44` = 9,
+  `45to49` = 10,
+  `50to54` = 11,
+  `55to59` = 12,
+  `60to64` = 13,
+  `65to69` = 14,
+  `70to74` = 15,
+  `75to79` = 16,
+  `80to84` = 17,
+  `85plus` = 18
+)
+  
+ # Resolve input age_group to numeric codes
+ codes <- c()
+ for (ag in age_group) {
+   if (is.character(ag)) {
+     if (ag %in% names(age_dict)) {
+       codes <- c(codes, age_dict[[ag]])
+     } else if (grepl("^[0-9]+plus$", ag)) {
+       start_age <- as.numeric(sub("plus", "", ag))
+       # select codes >= start_age
+       # lower bound for each AGEGROUP
+       age_low <- c(NA,0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85)
+       codes <- c(codes, which(age_low >= start_age))
+     } else {
+       stop("Invalid age group: ", ag)
+     }
+   } else if (is.numeric(ag)) {
+     codes <- c(codes, ag)
+   } else {
+     stop("age_group must be numeric or valid keywords")
+   }
+ }
+ codes <- unique(codes)
+ codes<-as.numeric(age_dict[codes])
+ 
+ # Estimated population data
+ pop_est <- tidycensus::get_estimates(
+    geography = "county",
+    product   = "characteristics",
+    breakdown = breakdown,
+    vintage   = vintage,
+    year      = year,
+    ...
+  )
+
+  
+  # Summarize population
+  group_vars <- breakdown[breakdown != "AGEGROUP"]
+  if(length(group_vars)==0){
+    pop_group <- pop_est %>%
+      dplyr::filter(AGEGROUP %in% codes) %>%
+      dplyr::group_by(GEOID, NAME) %>%
+      dplyr::summarise(population = sum(value), .groups = "drop")
+  } else {
+    pop_group <- pop_est %>%
+      dplyr::filter(AGEGROUP %in% codes) %>%
+      dplyr::group_by(GEOID, NAME,dplyr::across(dplyr::all_of(group_vars)))%>%
+      dplyr::summarise(population = sum(value), .groups = "drop")
+  }
+    
+  # Group and split
+  pop_list <- pop_group %>%
+    group_by(across(all_of(group_vars))) %>%
+    group_split()
+  
+  # Names to each list element
+  names(pop_list) <- pop_group %>%
+    group_by(across(all_of(group_vars))) %>%
+    group_keys() %>%
+    mutate(name = paste0("SEX", SEX, "_RACE", RACE)) %>%
+    pull(name)
+  
+return(pop_group)
+}
+
+
+#' Accept-Reject Sampling for Spatial Points
+#' 
+#' Generates random points within a polygon using accept-reject sampling.
+#' Each point is sampled within a population density cell and then checked
+#' to ensure it falls within the target polygon (state or county).
+#'
+#' @param dataset Data frame containing at least the following columns:
+#'   \itemize{
+#'     \item \code{x}: Longitude of the centroid of the population density pixel.
+#'     \item \code{y}: Latitude of the centroid of the population density pixel.
+#'     \item \code{stroke_type}: Type of stroke event (e.g., "Ischemic", "Hemorrhagic", "Mimic").
+#'     \item \code{category}: Category of the event within the stroke type.
+#'     \item \code{cnty_fips}: County FIPS code.
+#'     \item \code{display_name}: name for the county.
+#'   }
+#' @param state An \code{sf} object representing the state polygon.
+#' @param counties An \code{sf} object representing county polygons, must include column \code{cnty_fips}.
+#' @param county_fip Either \code{FALSE} (to sample across the entire state) or a single county FIPS code.
+#' @param res_density Numeric value specifying the resolution of sampling around each centroid (in degrees). Determines the uniform sampling range around \code{x} and \code{y}.
+#'
+#' @return A data frame containing the accepted points with columns:
+#' \code{longitude}, \code{latitude}, \code{stroke_type}, \code{category}, \code{cnty_fips}, \code{display_name}.
+#'
+#' @details
+#' The input coordinates \code{x} and \code{y} are the centroids of the population density raster pixels.
+#' The function generates candidate points by sampling uniformly around these centroids within a square
+#' of size \code{res_density}. Points outside the target polygon are rejected, keeping only valid locations.
+#'
+#' @export
+
+accept_reject_sampling <- function(dataset, state, counties, county_fip = FALSE, res_density,output=data.frame()) {
+  
+  if (!all(c("x", "y", "stroke_type", "category", "cnty_fips", "display_name") %in% names(dset))) {
+    stop("dset must contain columns: x, y, stroke_type, category, cnty_fips, display_name")
+  }
+  if (!inherits(state, "sf")) stop("state must be an sf object")
+  if (!inherits(counties, "sf")) stop("counties must be an sf object")
+  if (!is.numeric(res_density) || length(res_density) != 1 || res_density <= 0) {
+    stop("res_density must be a single positive numeric value")
+  }
+  if (!is.data.frame(output)) stop("output must be a data frame")
+  if (!(is.logical(county_fip) || is.character(county_fip) || is.numeric(county_fip))) {
+    stop("county_fip must be FALSE or a valid county FIPS code")
+  }
+  
+  # Generate random coordinates
+  dset <- dset %>%
+    dplyr::mutate(
+      longitude = runif(nrow(dset), x - res_density/2, x + res_density/2),
+      latitude  = runif(nrow(dset), y - res_density/2, y + res_density/2)
+    ) %>%
+    dplyr::select(c("x", "y", "longitude", "latitude", "stroke_type", "category", "cnty_fips", "display_name")) %>%
+    dplyr::left_join(counties, by = "cnty_fips")
+  
+  # Convert to sf geometry
+  geometry <- sf::st_as_sf(dset, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE)$geometry
+  
+  # Intersect with polygons
+  if (identical(county_fip, FALSE)) {
+    dset$intercept <- sf::st_intersects(geometry, state, sparse = FALSE) %>% as.vector()
+  } else {
+    dset$intercept <- sf::st_intersects(
+      geometry,
+      counties %>% dplyr::filter(cnty_fips == county_fip),
+      sparse = FALSE
+    ) %>% as.vector()
+  }
+  
+  # Keep valid points 
+  valid_points <- dset %>%
+    dplyr::filter(intercept == TRUE) %>%
+    dplyr::select(c("longitude", "latitude", "stroke_type", "category", "cnty_fips", "display_name"))
+  
+  output <- rbind(output, valid_points)
+  
+  # Recursive call for remaining points 
+  temp <- dset %>% dplyr::filter(intercept == FALSE)
+  
+  if (nrow(temp) == 0) {
+    return(output)
+  }
+  
+  # Recursive call to Random_strokes (assumes defined elsewhere)
+  Random_strokes(temp, state, counties, county_fip, res_density,output)
+}
+
+
+#' A Simulated Set of Patients for a Specific State or County.
+#' @param rate  Data frame with Hospitalization Average Rate per 1,000 Medicare Beneficiaries and counties FIPS, ages 65+ (Data from CDC Interactive Atlas of Heart Disease and Stroke).
 #' @param population  Data frame with population by county, ages 65+ (Census Data).
-#' @param density RasterLayer with population density in continental U.S. (excluding AK). 
 #' @param counties Shape file with geometry of counties (Census data).
-#' @param state_code State Code, example: "01".
-#' @param county_code County FIP, example: "003".
-#' @param ... Further arguments passed to exact_extract in the default setup.
-#' @import dplyr 
+#' @param state_fip State Code, example: "01".
+#' @param county_fip County FIP, example: "003".
+#' @param ... Further arguments passed to other functions in the default setup.
 #' @import Rdpack
 #' @import exactextractr
 #' @import purrr
@@ -18,18 +231,16 @@
 #' 
 #' \code{latitude} Latitude.
 #' 
-#' \code{stroke_type} Stroke type: Ischemic, Hemorrhagic, and Mimic.
-#' 
-#' \code{category} Stroke Category: LVO, Non-LVO, Hemorrhagic, and Mimic.
+#' \code{stroke_type} Stroke type: Ischemic and Hemorrhagic.
 #' 
 #' \code{cnty_fips} County FIP.
 #' 
 #' \code{display_name} County name.
 #' 
-#' @author Ferney Henao-Ceballos
+#' @author Ferney Henao-Ceballos; Grant Brown
 #' 
 #' @description
-#' We use county-level stroke hospitalization rates from the CDC Interactive
+#' We use county-level hospitalization rates from the CDC Interactive
 #' Atlas of Heart Disease and Stroke \insertCite{StrokeRates}{RandomStroke}, population 
 #' density data from the NASA Socioeconomic Data and Applications Center (SEDAC) 
 #' \insertCite{PopulationDensity}{RandomStroke}, and county population data from the U.S. Census Bureau (2023) 
@@ -37,25 +248,14 @@
 #' 
 #'    
 #' @details
-#' Stroke is the fifth leading cause of death in the United States, and its most severe form,
-#' large-vessel occlusion, accounts for over 60% of all stroke-related disabilities. 
-#' Endovascular therapy can significantly reduce stroke-related disability by 67% for
-#' qualifying patients, but this treatment is time-sensitive. Intravenous thrombolytic 
-#' therapy is also used for acute ischemic strokes and has been shown to be both effective 
-#' and time-sensitive. The location of the patient is crucial, as it directly affects 
-#' transport times to stroke centers and is closely correlated with delays in receiving 
-#' different treatments. Several research groups have developed promising modeling approaches
-#' to better understand the conditions under which treating patients at a local stroke center versus 
-#' directly transferring them to an endovascular stroke center yields better outcomes.
-#'
-#' We generate a realistic in-silico cohorts of stroke patients using the annual stroke hospitalization 
-#' rates obtained at a countywide level from 2014 to 2020 using the CDC Interactive Atlas of Heart Disease 
-#' and Stroke \insertCite{StrokeRates}{RandomStroke}, which provides ischemic and hemorrhagic metrics. 
-#' LVO/non-LVO and mimic event rates were determined using Emergency Department Stroke Visits in the 
-#' United States from 2016 to 2020. The strokes were distributed within counties in proportion to U.S. Census 
+#' 
+#' We generate a realistic in-silico cohorts of patients using the annual hospitalization 
+#' rates obtained at a countywide level using the CDC Interactive Atlas of Heart Disease 
+#' and Stroke \insertCite{StrokeRates}{RandomStroke}. 
+#' The patients were distributed within counties in proportion to U.S. Census 
 #' Bureau (2023) population estimates \insertCite{census_co_est2023}{RandomStroke}. Latitude and longitude 
-#' of stroke events were generated randomly, weighted by the GPWv4 population density map \insertCite{PopulationDensity}{RandomStroke},
-#' which takes into account pixel area while uniformly distributing locations within each pixel. Finally, we employed an accept/reject algorithm
+#' of the Patients were generated randomly, weighted by the GPWv4 population density map \insertCite{PopulationDensity}{RandomStroke},
+#' which takes into account pixel area while uniformly distributing locations within each pixel. Finally, we employed an recursive accept/reject algorithm
 #' based on county or state boundaries to accurately generate the locations within the chosen state or county. 
 #' 
 #' @references 
@@ -82,7 +282,7 @@
 
 
 
-GetStrokes <- function(rate, population, density, counties, state_code=FALSE, county_code=FALSE, warn = TRUE, years=1, ...){
+GetLocations <- function(rate, population, state_fip=FALSE, county_fip=FALSE, warn = TRUE, years=1, year_density=2020, res_density= 0.5, ...){
   
   # Checking warn
   if(!is.logical(warn) || length(warn) != 1){
@@ -100,9 +300,8 @@ GetStrokes <- function(rate, population, density, counties, state_code=FALSE, co
   }
   
   if(!all(nchar(rate$cnty_fips)==5)){
-    stop("Invalid 'cnty_fips', this is a example of a valid 'cnty_fips': '01003'")
+    stop("Invalid 'cnty_fips', this is an example of a valid 'cnty_fips': '01003'")
   }
-
   
   # Checking for valid values of population
   if(!("data.frame" %in% class(population))){
@@ -115,14 +314,22 @@ GetStrokes <- function(rate, population, density, counties, state_code=FALSE, co
   }
   
   if(!all(nchar(population$cnty_fips)==5)){
-    stop("Invalid 'cnty_fips', this is a example of a valid 'cnty_fips': '01003'")
+    stop("Invalid 'cnty_fips', this is an example of a valid 'cnty_fips': '01003'")
+  }
+  
+  if(!all(nchar(cnty_fips)==5)){
+    stop("Invalid 'cnty_fips', this is an example of a valid 'cnty_fips': '01003'")
+  }
+  
+  if(!all(nchar(state_fip)==2)){
+    stop("Invalid 'state_fip', this is an example of a valid 'state_fip': '03'")
   }
   
   # Checking for valid format of density
   if(!("RasterLayer" %in% class(density))){
     stop("density must be of class RasterLayer")
   }
-
+  
   # Checking for valid format of counties
   if(!("sf" %in% class(counties))){
     stop("counties must be of class sf")
@@ -134,23 +341,37 @@ GetStrokes <- function(rate, population, density, counties, state_code=FALSE, co
   }
   
   if(!all(nchar(counties$cnty_fips)==5)){
-    stop("Invalid 'cnty_fips', this is a example of a valid 'cnty_fips': '01003'")
+    stop("Invalid 'cnty_fips', this is an example of a valid 'cnty_fips': '01003'")
   }
   
-  if((county_code==FALSE & state_code==FALSE)){
-    stop("You must provide 'county_code' or 'state_code'")
+  if((county_fip==FALSE & state_fip==FALSE)){
+    stop("You must provide 'county_fip' or 'state_fip'")
   }
   
+  # Getting population density
+  density<-geodata::population(year=year_density,res=res_density, path=tempdir(),...)
+  
+  # Getting counties geometry
+  if(state_fip==FALSE){
+  state=substr(cnty_fips, 1, 2)
+  counties<-tigris::counties(state = state, cb = FALSE, resolution = "500k", year = NULL, ...)
+  }
+    else{
+    counties<-tigris::counties(state = state_fip, cb = FALSE, resolution = "500k", year = NULL, ...)
+    }
+   
+  
+
   # Random sample for specific state or county
-  if(county_code==FALSE){
-    counties<-counties%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
-    rate<-rate%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
-    population<-population%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_code)
+  if(county_fip==FALSE){
+    counties<-counties%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_fip)
+    rate<-rate%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_fip)
+    population<-population%>%dplyr::filter(substr(cnty_fips, 1, 2) == state_fip)
   }  
-   else{counties<-counties%>%dplyr::filter(cnty_fips == county_code)
-        rate<-rate%>%dplyr::filter(cnty_fips == county_code)
-        population<-population%>%dplyr::filter(cnty_fips == county_code)
-        }
+    else{counties<-counties%>%dplyr::filter(cnty_fips == county_fip)
+        rate<-rate%>%dplyr::filter(cnty_fips == county_fip)
+        population<-population%>%dplyr::filter(cnty_fips == county_fip)
+    }
      
   
   # Generating mu for Ischemic and Stroke events, the rate is per 1000 medicare beneficiaries
@@ -165,7 +386,7 @@ GetStrokes <- function(rate, population, density, counties, state_code=FALSE, co
   
   mu_poisson<-cbind(mu,mu_ischemic_poisson,mu_hemorrhagic_poisson,mu_mimics_poisson)
   
-  # Extracting coordinates of population density using the geometry of the county or state selected (state_code or county_code)
+  # Extracting coordinates of population density using the geometry of the county or state selected (state_fip or county_fip)
   USA_pop_density_2020<-exactextractr::exact_extract(density,counties,include_xy = TRUE,include_cell=TRUE,coverage_area=TRUE, ...) 
   # Including identifier by counties
   names(USA_pop_density_2020)<-counties$cnty_fips
@@ -199,45 +420,12 @@ GetStrokes <- function(rate, population, density, counties, state_code=FALSE, co
                                               dplyr::mutate(stroke_type="Mimic",category="Mimic")
   
   
-  state <- tigris::states(progress = FALSE)%>%filter(STATEFP == state_code)%>%dplyr::select(geometry)%>%st_transform("EPSG:4326")
+  state <- tigris::states(progress = FALSE)%>%dplyr::filter(STATEFP == state_fip)%>%dplyr::select(geometry)%>%st_transform("EPSG:4326")
   
-  initial<-data.frame()
-  Random_strokes <- function(dset, output, state, counties,county_code) {
-    # New coordinates
-    dset <- dset %>%dplyr::mutate(longitude = runif(nrow(dset), x - 0.00845/2, x + 0.00845/2),
-                           latitude = runif(nrow(dset), y - 0.00845/2, y + 0.00845/2)) %>%
-                    dplyr::select(c("x", "y", "longitude", "latitude", "stroke_type", "category", "cnty_fips", "display_name")) %>%
-                    dplyr::left_join(counties, by = "cnty_fips")
-    
-    # Convert to sf object and check intersections
-    geometry <- sf::st_as_sf(dset, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE)$geometry
-    
-    if(county_code==FALSE){
-    dset$intercept <- sf::st_intersects(geometry, state, sparse = FALSE) %>% as.vector()
-    }else{dset$intercept <- sf::st_intersects(geometry, counties%>%dplyr::filter(cnty_fips==county_code), sparse = FALSE) %>% as.vector()}
-    
-    
-    # Filter and update output
-    valid_points <- dset%>%dplyr::filter(intercept == TRUE) %>%dplyr::select(c("longitude", "latitude", "stroke_type", "category", "cnty_fips", "display_name"))
-    output <- rbind(output, valid_points)
-    
-    # Check remaining points
-    temp <- dset%>%dplyr::filter(intercept == FALSE)
-    
-    if (nrow(temp) == 0) {
-      return(output)
-    }
-    
-    Random_strokes(temp, output, state, counties,county_code)
-    
-  }
   
-  Data<-rbind(Random_strokes(random_ischemic_stroke_events_per_cell,initial,state,counties,county_code),
-              Random_strokes(random_hemorrhagic_stroke_events_per_cell,initial,state,counties,county_code),
-              Random_strokes(random_mimics_stroke_events_per_cell,initial,state,counties,county_code))
+  
+  Data<-rbind(accept_reject_sampling(random_ischemic_stroke_events_per_cell,state,counties,county_fip),
+              accept_reject_sampling(random_hemorrhagic_stroke_events_per_cell,state,counties,county_fip),
+              accept_reject_sampling(random_mimics_stroke_events_per_cell,state,counties,county_fip))
   return(Data)
  }  
-
-
-
-
