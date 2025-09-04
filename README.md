@@ -2,7 +2,7 @@
 
 ``` r
 library(gdp)
-load(Stroke_Rate)
+data(Stroke_Rate)
 population<-get_census_population()
 strokes<-generate_event_locations(rate=Stroke_Rate,
                                family = "negative_binomial",
