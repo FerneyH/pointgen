@@ -1,7 +1,7 @@
 ## Minimal example
 
 ``` r
-library(Geospatial_MAP-STROKE)
+library(gdp)
 load(Stroke_Rate)
 population<-get_census_population()
 strokes<-generate_event_locations(rate=Stroke_Rate,
