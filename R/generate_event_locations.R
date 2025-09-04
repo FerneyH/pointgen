@@ -1,13 +1,12 @@
 #' A Simulated Set of Patients/Events for a Specific State or County.
 #' 
-#' @param rate Data frame with one column for the event rate and a county FIP \code{county_fip} column.
-#' @param population Data frame with \code{county_fip} and  estimated counts of the target \code{population}.
-#' @param counties An \code{sf} object with \code{county_fip} and geometry columns.
-#' @param labels Character vector of labels assigned to each generated event.
+#' @param rate Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.
+#' @param population Data frame with \code{county_fip} and  estimated counts \code{count} of the target population.
+#' @param labels Label assigned to each generated event.
 #' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
-#' @param state_fip_code Optional state FIPS code (character, length 2). Default FALSE.
-#' @param county_fip Optional county FIPS code (character, length 5). Default FALSE.
-#' @param years Number of years to generate (default = 1).
+#' @param state_fip_code State FIPS code. Default FALSE.
+#' @param county_fip_code County FIPS code. Default FALSE.
+#' @param time Number of time periods to generate.
 #' @param family A distribution family used to generate event counts. Options include \code{poisson}, \code{negative_binomial}, or \code{normal}.
 #' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
 #' @param ... Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.
@@ -15,20 +14,19 @@
 #' \itemize{
 #'   \item \code{longitude} Longitude.
 #'   \item \code{latitude} Latitude.
-#'   \item \code{county_fip} County FIPS code.
-#'   \item \code{category} Assigned event category.
+#'   \item \code{county_fip} Unique county-level geographic identifier.
+#'   \item \code{label} Label assigned to each generated event.
 #' }
 #' 
-#' @author Ferney Henao-Ceballos; Grant Brown
 #' 
 #' @details
 #'
-#' We generate realistic in-silico cohorts of patients/events using annual event rates at the county level.
-#' Counts for each county are computed as: \code{years * rate * population / rate_per}
+#' We generate realistic in-silico cohorts of patients/events using rates at the county level.
+#' Counts for each county are computed as: \code{time * event_rate *  count / rate_per}
 #' 
 #' Counts can be generated using different statistical distributions via the \code{family} argument, 
 #' including \code{poisson}, \code{negative binomial}, or \code{normal}, with control over 
-#' distribution-specific parameters (e.g., dispersion for negative binomial \code{size}, standard deviation for the normal \code{sd}).
+#' distribution-specific parameters (e.g., dispersion for negative binomial distribution \code{size}, standard deviation for the normal distribution \code{sd}).
 #' 
 #' The  patients/events are distributed within counties in proportion to estimated population counts.
 #' Latitude and longitude of each event are generated randomly, weighted by the GPWv4 population density map,
@@ -41,14 +39,18 @@
 #' @references 
 #' \insertRef{Rpack:bibtex}{Rdpack}
 #' \insertRef{PopulationDensity}{generate_event_locations}
-#' \insertRef{StrokeRates}{generate_event_locations}
 #' \insertRef{census_co_est2023}{generate_event_locations}
 #' \insertRef{R-exactextractr}{generate_event_locations}
 #' \insertRef{R-purrr}{generate_event_locations}
-#' \insertRef{R-sf}{generate_event_locations}
 #' \insertRef{R-tigris}{generate_event_locations}
-#' \insertRef{sf2023}{generate_event_locations}
-#'
+#' \insertRef{R-geodata}{generate_event_locations}
+#' \insertRef{R-dplyr}{generate_event_locations}
+#' 
+#' @import dplyr 
+#' @importfrom exactextractr exact_extract
+#' @import purrr
+#' @import tigris
+#' @importfrom geodata population
 #' @export
 
 
@@ -61,7 +63,7 @@ generate_event_locations <- function(rate,
                                      county_fip_code = FALSE,
                                      labels = NULL,
                                      probs = NULL,
-                                     years = 1,
+                                     time = 1,
                                      year_density = 2020,
                                      res_density = 0.5,
                                      year_counties=NULL,
@@ -91,7 +93,7 @@ generate_event_locations <- function(rate,
   
   if(!("data.frame" %in% class(population))) stop("population must be a data frame")
   
-  if((county_fip_code==FALSE & state_fip==FALSE))stop("You must provide 'county_fip_code' or 'state_fip'")
+  if((county_fip_code==FALSE & state_fip_code==FALSE))stop("You must provide 'county_fip_code' or 'state_fip_code'")
   
   
   # Standardize FIPS codes to 5-character strings
@@ -113,20 +115,20 @@ generate_event_locations <- function(rate,
   
   
   names(population) <- tolower(names(population))
-  if(!all(c("county_fip", "population")%in%names(population))) stop("The population data frame must have 'county_fip' and 'population'")
+  if(!all(c("county_fip", "count")%in%names(population))) stop("The population data frame must have 'county_fip' and 'count'")
   
   
   # Getting counties geometry
   if(state_fip_code==FALSE){
     state=substr(county_fip_code, 1, 2)
-    counties<-tigris::counties(state = state, cb = FALSE, resolution = "500k", year = year_counties)
+    counties<-tigris::counties(state = state, cb = FALSE, resolution = "500k", year = year_counties,...)
   }
   else{
-    counties<-tigris::counties(state = state_fip_code, cb = FALSE, resolution = "500k", year = year_counties)
+    counties<-tigris::counties(state = state_fip_code, cb = FALSE, resolution = "500k", year = year_counties,...)
   }
   
   # Getting population density
-  density <- geodata::population(year = year_density, res = res_density, path = tempdir())
+  density <- geodata::population(year = year_density, res = res_density, path = tempdir(),...)
   
   # Resolution for the density
   res<-res(density)[1]
@@ -152,7 +154,7 @@ generate_event_locations <- function(rate,
   # Full join
   datatemp <- population %>%
     dplyr::full_join(rate, by = "county_fip") %>%
-    dplyr::mutate(estimated = years * event_rate * population / rate_per)
+    dplyr::mutate(estimated = time * event_rate * count / rate_per)
   
   
   # Family distribution
@@ -165,8 +167,8 @@ generate_event_locations <- function(rate,
                         normal = round(rnorm(n = rep(1,nrow(datatemp)), mean = datatemp$estimated, sd = control$sd)))
   
   
-  # Extracting coordinates of population density using the geometry of the county or state selected (state_fip or county_fip)
-  USA_pop_density<-exactextractr::exact_extract(density,counties,include_xy = TRUE,include_cell=TRUE,coverage_area=TRUE) 
+  # Extracting coordinates of population density using the geometry of the county or state selected (state_fip_code or county_fip_code)
+  USA_pop_density<-exactextractr::exact_extract(density,counties,include_xy = TRUE,include_cell=TRUE,coverage_area=TRUE,progress = FALSE) 
   # Including identifier by counties
   names(USA_pop_density)<-counties$GEOID
   
@@ -185,12 +187,12 @@ generate_event_locations <- function(rate,
   random_events_per_cell<-USA_pop_density_counties_weights_mu%>%dplyr::ungroup()%>%
     dplyr::group_split(county_fip)%>%
     purrr::map_dfr(., ~ slice_sample(.x,n=unique(.x$mu), weight_by =.x$weight,replace = TRUE))%>%
-    dplyr::mutate(category=sample(labels,length(.$county_fip),replace = TRUE,prob = probs))
+    dplyr::mutate(labels=sample(labels,length(.$county_fip),replace = TRUE,prob = probs))
   
   # Geometry for the state 
-  state <- tigris::states(progress = FALSE)%>%dplyr::filter(STATEFP == state_fip_code)%>%dplyr::select(geometry)%>%st_transform("EPSG:4326")
+  state <- tigris::states(progress = FALSE,year = year_counties)%>%dplyr::filter(STATEFP == state_fip_code)%>%dplyr::select(geometry)%>%st_transform("EPSG:4326")
   
-  # Changing name to merge
+  # Changing name 
   counties<-counties%>%rename(county_fip=GEOID)
   
   # Accept-reject sampling
