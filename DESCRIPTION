@@ -1,10 +1,10 @@
-Package: RandomStroke
-Title: A Simulated Set of Stroke Events for a Specific State or County.
-Version: 0.1.0
+Package: gpd
+Title: A Simulated Set of Geospatial Events/Patients
+Version: 0.0.1
 Authors@R: 
-    person("Ferney", "Henao-Ceballos", , "fhenaoceballos@uiowa.edu", role = c("aut", "cre"))
+person("Ferney", "Henao-Ceballos", , "fhenaoceballos@uiowa.edu", role = c("aut", "cre"))
 Maintainer: Ferney <fhenaoceballos@uiowa.edu>
-Description: We use county-level stroke hospitalization rates from the CDC Interactive Atlas of Heart Disease and Stroke, population density data from the NASA Socioeconomic Data and Applications Center (SEDAC), and county population data from the U.S. Census Bureau (2023) to generate random stroke events for any state or county in the continental United States.
+Description: This package generates a set of events/patients distributed across a state or county.
 Depends: dplyr, exactextractr, purr, tigris, sf
 Imports: Rdpack
 RdMacros: Rdpack
