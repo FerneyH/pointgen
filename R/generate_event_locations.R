@@ -1,14 +1,19 @@
 #' A Simulated Set of Patients/Events for a Specific State or County.
 #' 
 #' @param rate Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.
-#' @param population Data frame with \code{county_fip} and  estimated counts \code{count} of the target population.
-#' @param labels Label assigned to each generated event.
-#' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
-#' @param state_fip_code State FIPS code. Default FALSE.
-#' @param county_fip_code County FIPS code. Default FALSE.
-#' @param time Number of time periods to generate.
+#' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).
 #' @param family A distribution family used to generate event counts. Options include \code{poisson}, \code{negative_binomial}, or \code{normal}.
 #' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
+#' @param population Data frame with \code{county_fip} and  estimated counts \code{count} of the target population.
+#' @param state_fip_code State FIPS code. Default FALSE.
+#' @param county_fip_code County FIPS code. Default FALSE.
+#' @param labels Label assigned to each generated event.
+#' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
+#' @param time Number of time periods to generate. By default 1.
+#' @param year_density Integer. Specifies the year to use for the density. By default 2020.
+#' @param res_density Numeric. Resolution for density. By default 0.5.
+#' @param year_counties Integer. Specifies which year’s county boundaries are used.
+#' @param warn Logical. If TRUE, display warnings during simulation.
 #' @param ... Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.
 #' @return A data frame of generated locations with:
 #' \itemize{
@@ -36,38 +41,46 @@
 #' A recursive accept-reject algorithm based on county or state boundaries ensures that all
 #' generated points fall inside the target polygons while preserving the target counts and proportions.
 #' 
-#' @references 
-#' \insertRef{Rpack:bibtex}{Rdpack}
-#' \insertRef{PopulationDensity}{gdp}
-#' \insertRef{census_co_est2023}{gdp}
-#' \insertRef{R-exactextractr}{gdp}
-#' \insertRef{R-purrr}{gdp}
-#' \insertRef{R-tigris}{gdp}
-#' \insertRef{R-geodata}{gdp}
-#' \insertRef{R-dplyr}{gdp}
 #' 
+#' @importFrom Rdpack reprompt
+#' @import stats
 #' @import dplyr 
 #' @importFrom exactextractr exact_extract
 #' @importFrom purrr map_dfr
 #' @import tigris
 #' @importFrom geodata population
 #' 
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{R-exactextractr}{gdp}
+#' 
+#' \insertRef{R-purrr}{gdp}
+#' 
+#' \insertRef{R-tigris}{gdp}
+#' 
+#' \insertRef{R-geodata}{gdp}
+#' 
+#' \insertRef{R-dplyr}{gdp}
+#' 
+#' 
 #' @examples
 #' library(gdp)
 #' data(Stroke_Rate)
 #' population<-get_census_population()
 #' strokes<-generate_event_locations(rate=Stroke_Rate,
-#'                                  family = "negative_binomial",
-#'                                  population = population,
-#'                                  state_fip_code = "01",
-#'                                  control = list(size=10))
+#'                                   rate_per=1000,
+#'                                   family = "negative_binomial",
+#'                                   population = population,
+#'                                   state_fip_code = "01",
+#'                                   control = list(size=10))
 #' 
 #' 
 #' @export
 
 
 generate_event_locations <- function(rate,
-                                     rate_per=1000,
+                                     rate_per,
                                      family = c("poisson", "negative_binomial", "normal"),
                                      control = list(),
                                      population,

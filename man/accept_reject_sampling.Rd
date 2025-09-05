@@ -31,6 +31,8 @@ accept_reject_sampling(
 
 \item{res}{Numeric value specifying the resolution of sampling around each centroid (in degrees).
 Determines the uniform sampling range around \code{x} and \code{y}.}
+
+\item{output}{Optional data frame for storing generated results. By default data.frame()}
 }
 \value{
 A data frame containing the accepted points with columns:
@@ -49,6 +51,9 @@ The function generates candidate points by sampling uniformly around these centr
 of size \code{res}. Points outside the target polygon are rejected, keeping only valid locations.
 }
 \references{
+\insertRef{Rpack:bibtex}{Rdpack}
+
 \insertRef{R-dplyr}{gdp}
-\insertRef{sf2023}{gdp}
+
+\insertRef{R-sf}{gdp}
 }

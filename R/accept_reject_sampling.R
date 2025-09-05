@@ -20,6 +20,7 @@
 #' @param county_fip Either \code{FALSE} (to sample across the entire state) or a single county FIPS code.
 #' @param res Numeric value specifying the resolution of sampling around each centroid (in degrees). 
 #' Determines the uniform sampling range around \code{x} and \code{y}.
+#' @param output Optional data frame for storing generated results. By default data.frame()
 #'
 #' @return A data frame containing the accepted points with columns:
 #' \code{longitude}, \code{latitude}, \code{labels}, \code{county_fip}, \code{display_name}.
@@ -29,13 +30,20 @@
 #' The function generates candidate points by sampling uniformly around these centroids within a square
 #' of size \code{res}. Points outside the target polygon are rejected, keeping only valid locations.
 #' 
-#' @references 
-#' \insertRef{R-dplyr}{gdp}
-#' \insertRef{sf2023}{gdp}
-#' 
+#' @importFrom Rdpack reprompt
+#' @import stats
 #' @import dplyr 
 #' @import sf
+#' 
+#' @references
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#'  
+#' \insertRef{R-dplyr}{gdp}
+#' 
+#' \insertRef{R-sf}{gdp}
+#' 
 #' @export
+
 
 accept_reject_sampling <- function(dataset, state, counties, county_fip = FALSE, res,output=data.frame()) {
   

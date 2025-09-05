@@ -41,5 +41,9 @@ U.S. Census Bureau Population Estimates data.The functions allows filtering by
 age group, race, sex, and Hispanic origin.
 }
 \references{
+\insertRef{Rpack:bibtex}{Rdpack}
+
 \insertRef{R-dplyr}{gdp}
+
+\insertRef{R-tidycensus}{gdp}
 }

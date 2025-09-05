@@ -6,7 +6,7 @@
 \usage{
 generate_event_locations(
   rate,
-  rate_per = 1000,
+  rate_per,
   family = c("poisson", "negative_binomial", "normal"),
   control = list(),
   population,
@@ -25,6 +25,8 @@ generate_event_locations(
 \arguments{
 \item{rate}{Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.}
 
+\item{rate_per}{Numeric. Rate of events per unit population (e.g., per 1.000).}
+
 \item{family}{A distribution family used to generate event counts. Options include \code{poisson}, \code{negative_binomial}, or \code{normal}.}
 
 \item{control}{A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).}
@@ -39,7 +41,15 @@ generate_event_locations(
 
 \item{probs}{Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.}
 
-\item{time}{Number of time periods to generate.}
+\item{time}{Number of time periods to generate. By default 1.}
+
+\item{year_density}{Integer. Specifies the year to use for the density. By default 2020.}
+
+\item{res_density}{Numeric. Resolution for density. By default 0.5.}
+
+\item{year_counties}{Integer. Specifies which year’s county boundaries are used.}
+
+\item{warn}{Logical. If TRUE, display warnings during simulation.}
 
 \item{...}{Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.}
 }
@@ -76,20 +86,24 @@ library(gdp)
 data(Stroke_Rate)
 population<-get_census_population()
 strokes<-generate_event_locations(rate=Stroke_Rate,
-                                 family = "negative_binomial",
-                                 population = population,
-                                 state_fip_code = "01",
-                                 control = list(size=10))
+                                  rate_per=1000,
+                                  family = "negative_binomial",
+                                  population = population,
+                                  state_fip_code = "01",
+                                  control = list(size=10))
 
 
 }
 \references{
 \insertRef{Rpack:bibtex}{Rdpack}
-\insertRef{PopulationDensity}{gdp}
-\insertRef{census_co_est2023}{gdp}
+
 \insertRef{R-exactextractr}{gdp}
+
 \insertRef{R-purrr}{gdp}
+
 \insertRef{R-tigris}{gdp}
+
 \insertRef{R-geodata}{gdp}
+
 \insertRef{R-dplyr}{gdp}
 }

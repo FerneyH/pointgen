@@ -22,11 +22,18 @@
 #'   \item{age_group}{Age group.}
 #' }
 #' 
-#' @references 
-#' \insertRef{R-dplyr}{gdp}
-#' 
+#' @importFrom Rdpack reprompt
+#' @import stats
 #' @import dplyr
 #' @importFrom tidycensus get_estimates
+#' 
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{R-dplyr}{gdp}
+#' 
+#' \insertRef{R-tidycensus}{gdp}
+#' 
 #' @export
 
 get_census_population <- function(vintage   = 2021,
