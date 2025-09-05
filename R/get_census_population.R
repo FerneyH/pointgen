@@ -23,7 +23,7 @@
 #' }
 #' 
 #' @references 
-#' \insertRef{R-dplyr}{generate_event_locations}
+#' \insertRef{R-dplyr}{gdp}
 #' 
 #' @import dplyr
 #' @importFrom tidycensus get_estimates

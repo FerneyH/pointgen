@@ -38,13 +38,13 @@
 #' 
 #' @references 
 #' \insertRef{Rpack:bibtex}{Rdpack}
-#' \insertRef{PopulationDensity}{generate_event_locations}
-#' \insertRef{census_co_est2023}{generate_event_locations}
-#' \insertRef{R-exactextractr}{generate_event_locations}
-#' \insertRef{R-purrr}{generate_event_locations}
-#' \insertRef{R-tigris}{generate_event_locations}
-#' \insertRef{R-geodata}{generate_event_locations}
-#' \insertRef{R-dplyr}{generate_event_locations}
+#' \insertRef{PopulationDensity}{gdp}
+#' \insertRef{census_co_est2023}{gdp}
+#' \insertRef{R-exactextractr}{gdp}
+#' \insertRef{R-purrr}{gdp}
+#' \insertRef{R-tigris}{gdp}
+#' \insertRef{R-geodata}{gdp}
+#' \insertRef{R-dplyr}{gdp}
 #' 
 #' @import dplyr 
 #' @importFrom exactextractr exact_extract

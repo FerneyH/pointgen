@@ -41,5 +41,5 @@ U.S. Census Bureau Population Estimates data.The functions allows filtering by
 age group, race, sex, and Hispanic origin.
 }
 \references{
-\insertRef{R-dplyr}{generate_event_locations}
+\insertRef{R-dplyr}{gdp}
 }

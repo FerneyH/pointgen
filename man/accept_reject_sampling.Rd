@@ -49,6 +49,6 @@ The function generates candidate points by sampling uniformly around these centr
 of size \code{res}. Points outside the target polygon are rejected, keeping only valid locations.
 }
 \references{
-\insertRef{R-dplyr}{accept_reject_sampling}
-\insertRef{sf2023}{accept_reject_sampling}
+\insertRef{R-dplyr}{gdp}
+\insertRef{sf2023}{gdp}
 }
