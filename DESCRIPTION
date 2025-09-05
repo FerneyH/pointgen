@@ -2,10 +2,10 @@ Package: gpd
 Title: A Simulated Set of Geospatial Events/Patients
 Version: 0.0.1
 Authors@R: 
-person("Ferney", "Henao-Ceballos", , "fhenaoceballos@uiowa.edu", role = c("aut", "cre"))
+ person("Ferney", "Henao-Ceballos", , "fhenaoceballos@uiowa.edu", role = c("aut", "cre"))
 Maintainer: Ferney <fhenaoceballos@uiowa.edu>
 Description: This package generates a set of events/patients distributed across a state or county.
-Depends: dplyr, exactextractr, purr, tigris, sf
+Depends: dplyr, exactextractr, tigris, sf, tidycensus, purrr, geodata
 Imports: Rdpack
 RdMacros: Rdpack
 License: GPL (>= 3)

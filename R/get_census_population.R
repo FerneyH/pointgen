@@ -25,7 +25,8 @@
 #' @references 
 #' \insertRef{R-dplyr}{generate_event_locations}
 #' 
-#' @import dplyr 
+#' @import dplyr
+#' @importFrom tidycensus get_estimates
 #' @export
 
 get_census_population <- function(vintage   = 2021,

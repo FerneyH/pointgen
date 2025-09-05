@@ -47,10 +47,10 @@
 #' \insertRef{R-dplyr}{generate_event_locations}
 #' 
 #' @import dplyr 
-#' @importfrom exactextractr exact_extract
-#' @import purrr
+#' @importFrom exactextractr exact_extract
+#' @importFrom purrr map_dfr
 #' @import tigris
-#' @importfrom geodata population
+#' @importFrom geodata population
 #' 
 #' @examples
 #' library(gdp)
