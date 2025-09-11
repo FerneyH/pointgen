@@ -22,21 +22,31 @@
 #' get_boundary(state = "AL")
 #'
 #' # Get a single county
-#' get_boundary(state = "AL", county = "01001")
+#' get_boundary(state = "AL", county = "001")
 #'
 #' @importFrom tigris counties
+#' 
+#' @examples
+#' 
+#' get_boundary(state = "01",county = "001")
+#' get_boundary()
 #' 
 #' @export
 
 get_boundary <- function(state = NULL, county = NULL, year = 2024, cb = TRUE, ...) {
   
+  if(!is.null(county)){
+    if(!all(nchar(county)==3)) stop("Invalid 'county', this is an example of a valid 'county_fip_code': '001'")
+  }
+  
   boundary <- tigris::counties(state = state, year = year, cb = cb, ...)
   
   if (!is.null(county)) {
-    boundary <- boundary[boundary$GEOID == county, ]
+    boundary <- boundary[boundary$COUNTYFP == county, ]
   }
 
   return(boundary)
 }
 
+get_boundary(state = "01",county = "001")
 

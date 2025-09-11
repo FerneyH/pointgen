@@ -2,7 +2,7 @@
 #' 
 #' @param rate Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.
 #' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).
-#' @param family A distribution family used to generate event counts. Options include \code{poisson}, \code{negative_binomial}, or \code{normal}.
+#' @param family A distribution family used to generate event counts. Options include \code{poisson}, \code{negative_binomial}.
 #' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
 #' @param population Data frame with \code{county_fip} and  estimated counts \code{count} of the target population.
 #' @param state_fip_code State FIPS code. Default FALSE.
@@ -188,8 +188,7 @@ generate_event_locations <- function(rate,
   # Generate counts based on distribution family
   datatemp$mu <- switch(family,
                         poisson = rpois(n = rep(1,nrow(datatemp)), lambda = datatemp$estimated),
-                        negative_binomial = rnbinom(n = rep(1,nrow(datatemp)), mu = datatemp$estimated, size = control$size),
-                        normal = round(rnorm(n = rep(1,nrow(datatemp)), mean = datatemp$estimated, sd = control$sd)))
+                        negative_binomial = rnbinom(n = rep(1,nrow(datatemp)), mu = datatemp$estimated, size = control$size))
   
   
   # Extracting coordinates of population density using the geometry of the county or state selected (state_fip_code or county_fip_code)
