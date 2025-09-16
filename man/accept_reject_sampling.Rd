@@ -4,14 +4,7 @@
 \alias{accept_reject_sampling}
 \title{Accept-Reject Sampling for Spatial Points}
 \usage{
-accept_reject_sampling(
-  dataset,
-  state,
-  counties,
-  county_fip = FALSE,
-  res,
-  output = data.frame()
-)
+accept_reject_sampling(dataset, boundary, res_pixel, output = data.frame())
 }
 \arguments{
 \item{dataset}{Data frame containing at least the following columns:
@@ -19,24 +12,20 @@ accept_reject_sampling(
 \item \code{x}: Longitude of the centroid of the population density cell.
 \item \code{y}: Latitude of the centroid of the population density cell.
 \item \code{labels} Label assigned to each generated event.
-\item \code{county_fip}: Unique county-level geographic identifier.
+\item \code{geoid}: Unique geographic identifier.
 \item \code{display_name}: Name of the county.
 }}
 
-\item{state}{An \code{sf} object representing the state polygon.}
+\item{boundary}{State or county boundary. See get_boundary function.}
 
-\item{counties}{An \code{sf} object representing county polygons, must include the column \code{county_fip}.}
-
-\item{county_fip}{Either \code{FALSE} (to sample across the entire state) or a single county FIPS code.}
-
-\item{res}{Numeric value specifying the resolution of sampling around each centroid (in degrees).
+\item{res_pixel}{Numeric value specifying the resolution of sampling around each centroid (in degrees).
 Determines the uniform sampling range around \code{x} and \code{y}.}
 
 \item{output}{Optional data frame for storing generated results. By default data.frame()}
 }
 \value{
 A data frame containing the accepted points with columns:
-\code{longitude}, \code{latitude}, \code{labels}, \code{county_fip}, \code{display_name}.
+\code{longitude}, \code{latitude}, \code{labels}, \code{geoid}, \code{display_name}.
 }
 \description{
 Generates random points within a polygon using a vectorized accept-reject algorithm.
@@ -48,7 +37,7 @@ be generated efficiently.
 \details{
 The input coordinates \code{x} and \code{y} are the centroids of the population density raster pixels.
 The function generates candidate points by sampling uniformly around these centroids within a square
-of size \code{res}. Points outside the target polygon are rejected, keeping only valid locations.
+of size \code{res_pixel}. Points outside the target polygon are rejected, keeping only valid locations.
 }
 \references{
 \insertRef{Rpack:bibtex}{Rdpack}

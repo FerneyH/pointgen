@@ -5,32 +5,45 @@
 \title{Population Estimates by Age Group from Census Bureau}
 \usage{
 get_census_population(
-  vintage = 2021,
-  year = 2021,
+  geography,
   breakdown = "AGEGROUP",
-  age_group = "65plus",
+  age_group = "65to84",
+  state = NULL,
+  county = NULL,
+  geometry = TRUE,
   ...
 )
 }
 \arguments{
-\item{vintage}{Vintage year (e.g., \code{2022}).}
-
-\item{year}{Year within the vintage.}
+\item{geography}{The geography of your data. Available geographies for the most
+recent data vintage are listed \href{https://api.census.gov/data/2019/pep/population/geography.html}{here}. "cbsa" may be used an alias for "metropolitan
+statistical area/micropolitan statistical area".}
 
 \item{breakdown}{The population breakdown(s).
-Acceptable values are \code{"AGEGROUP"}, \code{"RACE"},
-\code{"SEX"}, and \code{"HISP"}. Multiple values may be supplied.}
+Acceptable values are \code{AGEGROUP}, \code{"RACE"},
+\code{"SEX"}, and \code{"HISP"}.}
 
 \item{age_group}{Character keywords (e.g., \code{"65plus"},
-\code{"15to69"}) or numeric code as defined by the U.S. Census Bureau.}
+\code{"15to69"}) or numeric code as defined by the U.S. Census Bureau. See arguments for
+\code{get_age_group} function.}
+
+\item{state}{The state for which the data is requested. State names, postal codes, and FIPS
+codes are accepted. Defaults to NULL.}
+
+\item{county}{The county for which the data is requested. County names and FIPS codes
+are accepted. Must be combined with a value supplied to ‘state‘. Defaults to NULL.}
+
+\item{geometry}{if FALSE (the default), return a regular tibble of ACS data. if TRUE, uses
+the tigris package to return an sf tibble with simple feature geometry in the
+‘geometry‘ column.}
 
 \item{...}{Additional arguments passed to \code{tidycensus::get_estimates()}.}
 }
 \value{
 A list of data frames, one per strata. Each data frame contains:
 \describe{
-\item{county_fip}{Unique county-level geographic identifier.}
-\item{Name}{County name.}
+\item{GEOID}{Unique geographic identifier.}
+\item{Name}{County or state name.}
 \item{population}{Estimated population for the given strata.}
 \item{age_group}{Age group.}
 }
@@ -39,6 +52,11 @@ A list of data frames, one per strata. Each data frame contains:
 A helper function that uses \code{tidycensus::get_estimates()} to obtain
 U.S. Census Bureau Population Estimates data.The functions allows filtering by
 age group, race, sex, and Hispanic origin.
+}
+\examples{
+get_census_population(geography="county",breakdown=c("AGEGROUP"))
+get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"))
+get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"),state="01", county ="001")
 }
 \references{
 \insertRef{Rpack:bibtex}{Rdpack}

@@ -38,7 +38,7 @@
 #'   }
 #'
 #' @return 
-#' A numeric vector of valid Census AGEGROUP codes.
+#' A numeric vector of valid census AGEGROUP codes.
 #' 
 #' @examples 
 #' library(gdp)
@@ -46,6 +46,7 @@
 #' get_age_group("65to79")
 #' get_age_group(1)
 #'
+#'@export
 
 get_age_group <- function(age_group="total") {
   

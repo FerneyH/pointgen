@@ -2,22 +2,19 @@
 % Please edit documentation in R/generate_event_locations.R
 \name{generate_event_locations}
 \alias{generate_event_locations}
-\title{A Simulated Set of Patients/Events for a Specific State or County.}
+\title{A Simulated Set of Events for a Specific State or County.}
 \usage{
 generate_event_locations(
   rate,
   rate_per,
-  family = c("poisson", "negative_binomial", "normal"),
-  control = list(),
   population,
-  state_fip_code = FALSE,
-  county_fip_code = FALSE,
+  family = c("poisson", "negative_binomial"),
+  control = list(),
+  state = NULL,
+  county = NULL,
   labels = NULL,
   probs = NULL,
   time = 1,
-  year_density = 2020,
-  res_density = 0.5,
-  year_counties = NULL,
   warn = TRUE,
   ...
 )
@@ -27,27 +24,24 @@ generate_event_locations(
 
 \item{rate_per}{Numeric. Rate of events per unit population (e.g., per 1.000).}
 
-\item{family}{A distribution family used to generate event counts. Options include \code{poisson}, \code{negative_binomial}, or \code{normal}.}
+\item{population}{List with \code{GEOID} and estimated population \code{count}
+for the target rate.}
+
+\item{family}{A distribution family used to generate event counts. Options include \code{poisson} or \code{negative_binomial}.}
 
 \item{control}{A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).}
 
-\item{population}{Data frame with \code{county_fip} and  estimated counts \code{count} of the target population.}
+\item{state}{The state for which the data is requested. State names, postal codes,
+and FIPS codes are accepted. Defaults to \code{NULL}.}
 
-\item{state_fip_code}{State FIPS code. Default FALSE.}
-
-\item{county_fip_code}{County FIPS code. Default FALSE.}
+\item{county}{The county for which data is requested. FIPS
+codes are accepted. Defaults to \code{NULL}.}
 
 \item{labels}{Label assigned to each generated event.}
 
 \item{probs}{Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.}
 
 \item{time}{Number of time periods to generate. By default 1.}
-
-\item{year_density}{Integer. Specifies the year to use for the density. By default 2020.}
-
-\item{res_density}{Numeric. Resolution for density. By default 0.5.}
-
-\item{year_counties}{Integer. Specifies which year’s county boundaries are used.}
 
 \item{warn}{Logical. If TRUE, display warnings during simulation.}
 
@@ -63,17 +57,17 @@ A data frame of generated locations with:
 }
 }
 \description{
-A Simulated Set of Patients/Events for a Specific State or County.
+A Simulated Set of Events for a Specific State or County.
 }
 \details{
-We generate realistic in-silico cohorts of patients/events using rates at the county level.
+We generate realistic in-silico cohorts of events using rates at the county level.
 Counts for each county are computed as: \code{time * event_rate *  count / rate_per}
 
 Counts can be generated using different statistical distributions via the \code{family} argument,
-including \code{poisson}, \code{negative binomial}, or \code{normal}, with control over
-distribution-specific parameters (e.g., dispersion for negative binomial distribution \code{size}, standard deviation for the normal distribution \code{sd}).
+including \code{poisson} or \code{negative binomial}, with control over
+distribution-specific parameters (e.g., dispersion for negative binomial distribution \code{size}).
 
-The  patients/events are distributed within counties in proportion to estimated population counts.
+The events are distributed within counties in proportion to estimated population counts.
 Latitude and longitude of each event are generated randomly, weighted by the GPWv4 population density map,
 so denser areas are more likely to receive events, while sparsely populated areas receive fewer. The algorithm
 also accounts for pixel area to avoid bias due to differing cell sizes.
@@ -84,13 +78,13 @@ generated points fall inside the target polygons while preserving the target cou
 \examples{
 library(gdp)
 data(Stroke_Rate)
-population<-get_census_population()
+population<-get_census_population(geography="county")
 strokes<-generate_event_locations(rate=Stroke_Rate,
                                   rate_per=1000,
-                                  family = "negative_binomial",
                                   population = population,
-                                  state_fip_code = "01",
-                                  control = list(size=10))
+                                  family = "negative_binomial",
+                                  control = list(size=10),
+                                  state = "01")
 
 
 }

@@ -14,9 +14,9 @@
 #' @param age_group Character keywords (e.g., \code{"65plus"}, 
 #'   \code{"15to69"}) or numeric code as defined by the U.S. Census Bureau. See arguments for
 #'   \code{get_age_group} function.
-#' @param state The state for which you are requesting data. State names, postal codes, and FIPS
+#' @param state The state for which the data is requested. State names, postal codes, and FIPS
 #' codes are accepted. Defaults to NULL.
-#' @param county The county for which you are requesting data. County names and FIPS codes
+#' @param county The county for which the data is requested. County names and FIPS codes
 #' are accepted. Must be combined with a value supplied to ‘state‘. Defaults to NULL.
 #' @param geometry if FALSE (the default), return a regular tibble of ACS data. if TRUE, uses 
 #' the tigris package to return an sf tibble with simple feature geometry in the
@@ -33,11 +33,10 @@
 #' }
 #' 
 #' @importFrom Rdpack reprompt
-#' @import stats
-#' @import dplyr
 #' @importFrom tidycensus get_estimates
+#' @import dplyr 
 #' 
-#' @references 
+#' @references  
 #' \insertRef{Rpack:bibtex}{Rdpack}
 #' 
 #' \insertRef{R-dplyr}{gdp}

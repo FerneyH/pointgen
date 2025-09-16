@@ -3,14 +3,24 @@
 \docType{data}
 \name{Stroke_Rate}
 \alias{Stroke_Rate}
-\title{Example dataset: Stroke_Rate}
+\title{Stroke Hospitalization Rates}
 \format{
-A data frame with stroke rates by county
+\subsection{\code{who}}{
+
+A data frame with 3226 rows and 3 columns:
+\describe{
+\item{display_name}{county name.}
+\item{event_rate}{Stroke rate.}
+\item{GEOID}{Unique geographic identifier.}
+}
+}
 }
 \usage{
 Stroke_Rate
 }
 \description{
-Example dataset: Stroke_Rate
+Data from the U.S. Centers for Disease Control and Prevention (CDC) Interactive
+Atlas of Heart Disease and Stroke with annual stroke hospitalization rates for
+individuals aged 65 and older at the county level from 2014 to 2020.
 }
 \keyword{datasets}
