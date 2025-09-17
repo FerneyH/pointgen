@@ -7,7 +7,7 @@
 #' @param rate List with event rate \code{event_rate} and \code{GEOID}.
 #' @param population List with \code{GEOID} and estimated population \code{count}
 #' for the target rate.
-#' @param rate_per Rate of events per unit population (e.g., per 1,000). 
+#' @param rate_per Rate of events per unit population (e.g., per 1,000; 1000,000). 
 #'   Defaults to \code{1000}.
 #' @param state The state for which the data is requested. State names, postal codes, 
 #'   and FIPS codes are accepted. Defaults to \code{NULL}.
@@ -27,9 +27,11 @@
 #' data(Stroke_Rate)
 #' pop<-get_census_population(geography="county",age_group = "65plus")
 #' get_rates(rate = Stroke_Rate,population=pop)
+#' get_rates(rate = Stroke_Rate,population=pop,state = "AL")
 #' get_rates(rate = Stroke_Rate,population=pop,state = "01",county = "001")
 #'
 #' @import dplyr
+#' @import tigris
 #' @export
 #' 
 get_rates <- function(rate,
@@ -52,6 +54,18 @@ get_rates <- function(rate,
   population<-dplyr::bind_rows(population)
   names(rate) <- tolower(names(rate))
   names(population) <- tolower(names(population))
+  
+  # standardize state
+   if (state %in% tigris::fips_codes$state) {
+      state<-sprintf("%02s", tigris::fips_codes$state_code[tigris::fips_codes$state == state])
+    } else if (state %in% tigris::fips_codes$state_name) {
+      state<-sprintf("%02s", tigris::fips_codes$state_code[tigris::fips_codes$state_name == state])
+    } else if (state %in% tigris::fips_codes$state_code) {
+      state<-sprintf("%02s", state)
+    } else {
+      stop("Unrecognized state identifier")
+    }
+
   
   # Replace missing values (NA) with zero to ensure valid counts/rates
   rate$event_rate[is.na(rate$event_rate)] <- 0

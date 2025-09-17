@@ -13,9 +13,9 @@
 #'     \item \code{y}: Latitude of the centroid of the population density cell.
 #'     \item \code{labels} Label assigned to each generated event.
 #'     \item \code{geoid}: Unique geographic identifier.
-#'     \item \code{display_name}: Name of the county.
+#'     \item \code{display_name}: Name.
 #'   }
-#' @param boundary State or county boundary. See get_boundary function.
+#' @param boundary Geographic boundary boundary. See get_boundary function.
 #' @param res_pixel Numeric value specifying the resolution of sampling around each centroid (in degrees). 
 #' Determines the uniform sampling range around \code{x} and \code{y}.
 #' @param output Optional data frame for storing generated results. By default data.frame()
@@ -46,10 +46,10 @@
 accept_reject_sampling <- function(dataset, boundary, res_pixel,output=data.frame()) {
   
   if (!all(c("x", "y", "geoid") %in% names(dataset))) {
-    stop("dataset must contain columns: x, y, labels, geoid")
+    stop("'dataset' must contain the columns: x, y, labels, geoid")
     }
   if (!is.numeric(res_pixel) || length(res_pixel) != 1 || res_pixel <= 0) {
-    stop("res_pixel must be a single positive numeric value")
+    stop("'res_pixel' must be a single positive numeric value")
   }
   
  

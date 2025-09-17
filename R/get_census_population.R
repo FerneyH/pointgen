@@ -1,7 +1,7 @@
 #' Population Estimates by Age Group from Census Bureau
 #'
 #' A helper function that uses \code{tidycensus::get_estimates()} to obtain
-#' U.S. Census Bureau Population Estimates data.The functions allows filtering by
+#' U.S. Census Bureau Population Estimates. The function allows filtering by
 #' age group, race, sex, and Hispanic origin.
 #' 
 #' @param geography The geography of your data. Available geographies for the most 
@@ -16,8 +16,8 @@
 #'   \code{get_age_group} function.
 #' @param state The state for which the data is requested. State names, postal codes, and FIPS
 #' codes are accepted. Defaults to NULL.
-#' @param county The county for which the data is requested. County names and FIPS codes
-#' are accepted. Must be combined with a value supplied to ‘state‘. Defaults to NULL.
+#' @param county The county for which the data is requested. County FIP codes
+#' are accepted.
 #' @param geometry if FALSE (the default), return a regular tibble of ACS data. if TRUE, uses 
 #' the tigris package to return an sf tibble with simple feature geometry in the
 #' ‘geometry‘ column.
@@ -47,18 +47,23 @@
 #' @examples
 #' get_census_population(geography="county",breakdown=c("AGEGROUP"))
 #' get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"))
+#' get_census_population(geography="state",breakdown=c("AGEGROUP","SEX"),state="Alabama")
 #' get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"),state="01", county ="001")
 #' @export
 
 get_census_population <- function(geography,
                                   breakdown="AGEGROUP",
-                                  age_group = "65to84",
+                                  age_group = "Total",
                                   state = NULL,
                                   county = NULL,
                                   geometry = TRUE,
                                   ...){
   # Age groups
   codes<-unlist(get_age_group(age_group))
+  
+  # Age group equal to total is not consistent through states and counties
+  if(age_group == "Total" && is.null(county)){codes<-c(1:18)}
+  
 
   # Estimated population data
   pop_est <- tidycensus::get_estimates(
@@ -92,7 +97,7 @@ get_census_population <- function(geography,
   # Group and split
   pop_list <- pop_group %>%
     dplyr::group_by(across(all_of(group_vars))) %>%
-   dplyr::group_split()
+    dplyr::group_split()
 
 return(pop_list)
 }

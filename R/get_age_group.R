@@ -33,7 +33,7 @@
 #'   \itemize{
 #'     \item Keywords from the dictionary above.
 #'     \item Open-ended notation like \code{"65plus"}.
-#'     \item Ranges like \code{"15to69"} (validated against Census bins).
+#'     \item Ranges like \code{"15to69"}.
 #'     \item Numeric codes 0–18 (see dictionary).
 #'   }
 #'
@@ -113,5 +113,4 @@ get_age_group <- function(age_group="total") {
       stop("age_group must be character or numeric.")
     }
 }
-
 
