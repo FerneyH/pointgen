@@ -4,7 +4,11 @@
 #' Atlas of Heart Disease and Stroke with annual stroke hospitalization rates for 
 #' individuals aged 65 and older at the county level from 2014 to 2020.
 #'
+<<<<<<< HEAD
 #' @format 
+=======
+#' @format
+>>>>>>> 129d18104c38f81a7344c2cda22d2727cfe65fad
 #' A data frame with 3226 rows and 3 columns:
 #' \describe{
 #'   \item{display_name}{county name.}
