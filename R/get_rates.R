@@ -1,23 +1,24 @@
 #' Prepare Event Rates with Boundaries
 #'
 #' @description
-#' Combines event rates, population, and state or county boundary into a single object for 
+#' Combines event rates, population, and geographic regions into a single object for 
 #' simulation. 
-#'
+#' 
 #' @param rate List with event rate \code{event_rate} and \code{GEOID}.
 #' @param population List with \code{GEOID} and estimated population \code{count}
 #' for the target rate.
-#' @param rate_per Rate of events per unit population (e.g., per 1,000; 1000,000). 
-#'   Defaults to \code{1000}.
+#'  
+#' @param rate_per multiplier constant (e.g., events per 1,000 individuals). 
+#'   Default to \code{1000}.  
 #' @param state The state for which the data is requested. State names, postal codes, 
-#'   and FIPS codes are accepted. Defaults to \code{NULL}.
+#'   and FIPS codes are accepted. Default to \code{NULL}.
 #' @param county The county for which the data is requested. FIPS 
-#'   codes are accepted. Defaults to \code{NULL}.
-#' @param time Number of time periods to generate. Defaults to \code{1}.
+#'   codes are accepted. Default to \code{NULL}.
+#' @param time Number of time periods to generate. Default to \code{1}.
 #'
 #' @return A list with:
 #' \itemize{
-#'   \item \code{data} A data frame of counties with event rates, population, 
+#'   \item \code{data} A data frame of geographic regions with event rates, population, 
 #'   and estimated counts.
 #'   \item \code{boundary} An \code{sf} object of the requested state or county 
 #'   boundary.
@@ -56,16 +57,18 @@ get_rates <- function(rate,
   names(population) <- tolower(names(population))
   
   # standardize state
-   if (state %in% tigris::fips_codes$state) {
-      state<-sprintf("%02s", tigris::fips_codes$state_code[tigris::fips_codes$state == state])
-    } else if (state %in% tigris::fips_codes$state_name) {
-      state<-sprintf("%02s", tigris::fips_codes$state_code[tigris::fips_codes$state_name == state])
-    } else if (state %in% tigris::fips_codes$state_code) {
+  if(!is.null(state)){
+    fips <- tigris::fips_codes |> dplyr::distinct(state, state_name, state_code)
+   if (state %in% fips$state) {
+      state<-sprintf("%02s", fips$state_code[fips$state == state])
+    } else if (state %in% fips$state_name) {
+      state<-sprintf("%02s", fips$state_code[fips$state_name == state])
+    } else if (state %in% fips$state_code) {
       state<-sprintf("%02s", state)
     } else {
       stop("Unrecognized state identifier")
     }
-
+  }
   
   # Replace missing values (NA) with zero to ensure valid counts/rates
   rate$event_rate[is.na(rate$event_rate)] <- 0
@@ -83,6 +86,7 @@ get_rates <- function(rate,
     rate <- dplyr::filter(rate, substr(geoid, 1, 2) == state & substr(geoid, 3, 5) == county)
     population <- dplyr::filter(population, substr(geoid, 1, 2) == state & substr(geoid, 3, 5) == county)
   }
+  
   
   # merge rate and population, calculate estimated counts
   df <- dplyr::full_join(population, rate, by = "geoid") %>%

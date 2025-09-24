@@ -5,14 +5,11 @@
 \alias{Stroke_Rate}
 \title{Stroke Hospitalization Rates}
 \format{
-\subsection{\code{who}}{
-
 A data frame with 3226 rows and 3 columns:
 \describe{
 \item{display_name}{county name.}
 \item{event_rate}{Stroke rate.}
 \item{GEOID}{Unique geographic identifier.}
-}
 }
 }
 \usage{

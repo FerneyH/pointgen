@@ -1,15 +1,20 @@
 #' A Simulated Set of Events for a Specific State or County.
 #' 
+#' @param geography Character string specifying the boundary type from the tigirs package. 
+#' 
+#' Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+#' 
+#' "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".
 #' @param rate Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.
-#' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).
 #' @param family A distribution family used to generate event counts. Options include \code{poisson} or \code{negative_binomial}.
 #' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
+#' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).Default to \code{1000}.
 #' @param population List with \code{GEOID} and estimated population \code{count}
 #' for the target rate.
 #' @param state The state for which the data is requested. State names, postal codes, 
-#'   and FIPS codes are accepted. Defaults to \code{NULL}.
+#'   and FIPS codes are accepted. Default to \code{NULL}.
 #' @param county The county for which data is requested. FIPS 
-#'   codes are accepted. Defaults to \code{NULL}.
+#'   codes are accepted. Default to \code{NULL}.
 #' @param labels Label assigned to each generated event.
 #' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
 #' @param time Number of time periods to generate. By default 1.
@@ -68,22 +73,23 @@
 #' library(gdp)
 #' data(Stroke_Rate)
 #' population<-get_census_population(geography="county")
-#' strokes<-generate_event_locations(rate=Stroke_Rate,
-#'                                   rate_per=1000,
+#' strokes<-generate_event_locations(geography="county",
+#'                                   rate=Stroke_Rate,
 #'                                   population = population,
 #'                                   family = "negative_binomial",
 #'                                   control = list(size=10),
-#'                                   state = "01")
+#'                                   state = "19")
 #' 
 #' 
 #' @export
 
 
-generate_event_locations <- function(rate,
-                                     rate_per,
+generate_event_locations <- function(geography=c("state", "county", "zcta", "cbsa","combined statistical area"),
+                                     rate,
                                      population,
                                      family = c("poisson", "negative_binomial"),
                                      control = list(),
+                                     rate_per= 1000,
                                      state = NULL,
                                      county = NULL,
                                      labels = NULL,
@@ -92,6 +98,7 @@ generate_event_locations <- function(rate,
                                      warn = TRUE,
                                      ...) {
   
+  geography <- match.arg(geography)
   # Sanity checks
   if (is.null(labels) && is.null(probs)) {
     labels <- "event"
@@ -124,7 +131,7 @@ generate_event_locations <- function(rate,
                         negative_binomial = rnbinom(n = rep(1,nrow(datatemp)), mu = datatemp$estimated, size = control$size))
   
   
-  USA_pop_density<-get_density(state = state, county = county)
+  USA_pop_density<-get_density(geography=geography,state = state, county = county)
   
   # Pixel resolution
   res=unique(USA_pop_density[[1]]$res_pixel)
@@ -142,7 +149,6 @@ generate_event_locations <- function(rate,
   
   
   
-  
   # Random events, generating labels
   random_events_per_cell<-USA_pop_density_counties_weights_mu%>%dplyr::ungroup()%>%
     dplyr::group_split(geoid)%>%
@@ -151,18 +157,18 @@ generate_event_locations <- function(rate,
     dplyr::select(c("x", "y", "labels", "geoid", "display_name"))
   
   ## Accept-reject sampling
-  # Creating the boundary for intersections
-  if(!is.null(state)){
-    boundary <- tigris::states(progress = FALSE)%>%dplyr::filter(STATEFP == state)%>%
-                                              dplyr::select(geometry)%>%
-                                              st_transform("EPSG:4326")}
+  # Creating the boundary for intersections, it only checks specific county or state
+
+  boundary <- get_boundary(geography =geography, state =state, county = county)
   
-  if(!is.null(county)){
-    boundary <- tigris::states(progress = FALSE)%>%dplyr::filter(STATEFP == county)%>%
-      dplyr::select(geometry)%>%
-      st_transform("EPSG:4326")}
+  
+  boundary <- boundary%>%dplyr::select(GEOID,geometry)%>%st_transform("EPSG:4326")
+  names(boundary) <- tolower(names(boundary))
+  
   
   sampled_points<-accept_reject_sampling(random_events_per_cell,boundary,res)
+    
   
-  return(sampled_points)
+  return(list(events=random_events_per_cell,geometry=boundary))
 }
+

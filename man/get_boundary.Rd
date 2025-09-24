@@ -2,40 +2,56 @@
 % Please edit documentation in R/get_boundary.R
 \name{get_boundary}
 \alias{get_boundary}
-\title{Get State or County Boundaries}
+\title{Get Geographic Boundaries}
 \usage{
-get_boundary(state = NULL, county = NULL, year = 2024, cb = TRUE, ...)
+get_boundary(
+  geography = c("state", "county", "zcta", "cbsa", "combined statistical area"),
+  state = NULL,
+  county = NULL,
+  ...
+)
 }
 \arguments{
-\item{state}{The state for which the data is requested. State names, postal codes,
-or FIPS codes are accepted. Defaults to \code{NULL}.}
+\item{geography}{Character string specifying the boundary type from the tigirs package.
 
-\item{county}{The county for which the data is requested. FIPS
-codes are accepted. Defaults to \code{NULL}.}
+Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
 
-\item{year}{Integer. Year of the boundary data. Default is \code{2024}.}
+"cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
 
-\item{cb}{Logical. If \code{TRUE}, return cartographic boundary files
-(generalized for plotting). Default is \code{FALSE}.}
+\item{state}{A state name, postal code, or FIPS code. Required for
+county and place boundaries.}
 
-\item{...}{Additional arguments passed to \code{tigris::counties()}.}
+\item{county}{A 3-digit county FIPS code (character).}
+
+\item{...}{Additional arguments passed to the underlying \pkg{tigris}
+functions.}
 }
 \value{
-An \code{sf} object with geographic boundaries.
+An \code{sf} object containing the requested geographic boundaries.
 }
 \description{
-Get State or County Boundaries
-}
-\details{
-This function retrieves county or state boundaries using the
-\pkg{tigris} package. If both \code{state} and \code{county} are \code{NULL},
-all U.S. counties are returned.
+Geographic boundaries for a variety of administrative and statistical
+units, including states, counties, ZIP Code Tabulation Areas (ZCTAs), and
+metropolitan areas.
 }
 \examples{
-# Get all counties in Alabama
-get_boundary(state = "AL")
+# Retrieve all state boundaries
+get_boundary("state")
 
-# Get a single county
-get_boundary(state = "AL", county = "001")
+# Counties in Texas
+get_boundary("county", state = "TX")
+
+# Texas
+get_boundary("state", state = "TX")
+
+# Single county by FIPS
+get_boundary("county", state = "TX", county = "201")
+
+# ZIP Code Tabulation Areas (ZCTAs)
+get_boundary("zcta",starts_with = c("37", "38", "72"))
+
+# Core-Based Statistical Areas
+get_boundary("cbsa")
+
 
 }

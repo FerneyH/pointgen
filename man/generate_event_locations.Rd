@@ -5,11 +5,12 @@
 \title{A Simulated Set of Events for a Specific State or County.}
 \usage{
 generate_event_locations(
+  geography = c("state", "county", "zcta", "cbsa", "combined statistical area"),
   rate,
-  rate_per,
   population,
   family = c("poisson", "negative_binomial"),
   control = list(),
+  rate_per = 1000,
   state = NULL,
   county = NULL,
   labels = NULL,
@@ -20,9 +21,13 @@ generate_event_locations(
 )
 }
 \arguments{
-\item{rate}{Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.}
+\item{geography}{Character string specifying the boundary type from the tigirs package.
 
-\item{rate_per}{Numeric. Rate of events per unit population (e.g., per 1.000).}
+Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+
+"cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
+
+\item{rate}{Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.}
 
 \item{population}{List with \code{GEOID} and estimated population \code{count}
 for the target rate.}
@@ -31,11 +36,13 @@ for the target rate.}
 
 \item{control}{A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).}
 
+\item{rate_per}{Numeric. Rate of events per unit population (e.g., per 1.000).Default to \code{1000}.}
+
 \item{state}{The state for which the data is requested. State names, postal codes,
-and FIPS codes are accepted. Defaults to \code{NULL}.}
+and FIPS codes are accepted. Default to \code{NULL}.}
 
 \item{county}{The county for which data is requested. FIPS
-codes are accepted. Defaults to \code{NULL}.}
+codes are accepted. Default to \code{NULL}.}
 
 \item{labels}{Label assigned to each generated event.}
 
@@ -79,12 +86,12 @@ generated points fall inside the target polygons while preserving the target cou
 library(gdp)
 data(Stroke_Rate)
 population<-get_census_population(geography="county")
-strokes<-generate_event_locations(rate=Stroke_Rate,
-                                  rate_per=1000,
+strokes<-generate_event_locations(geography="county",
+                                  rate=Stroke_Rate,
                                   population = population,
                                   family = "negative_binomial",
                                   control = list(size=10),
-                                  state = "01")
+                                  state = "19")
 
 
 }

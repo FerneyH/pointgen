@@ -5,6 +5,7 @@
 \title{Get Population Density Values}
 \usage{
 get_density(
+  geography = c("state", "county", "zcta", "cbsa", "combined statistical area"),
   state = NULL,
   county = NULL,
   year = 2020,
@@ -14,11 +15,17 @@ get_density(
 )
 }
 \arguments{
+\item{geography}{Character string specifying the boundary type from the tigirs package.
+
+Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+
+"cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
+
 \item{state}{The state for which the data is requested. State names, postal codes,
-or FIPS codes are accepted. Defaults to \code{NULL}.}
+or FIPS codes are accepted. Default to \code{NULL}.}
 
 \item{county}{The county for which the data is requested. FIPS codes
-are accepted. Defaults to \code{NULL}.}
+are accepted. Default to \code{NULL}.}
 
 \item{year}{Year of the population density data. One of 2000, 2005, 2010, 2015, 2020. Default is \code{2020}.}
 
@@ -42,7 +49,8 @@ the \pkg{geodata} package. Data is obtained from the GPWv4 dataset.
 }
 \examples{
 # Get 2020 population density at 0.5 resolution
-get_density()
-get_density(state="01")
+get_density(geography="state")
+get_density(geography="state",state="01")
+get_density(geography="county",state="01",county="001")
 
 }

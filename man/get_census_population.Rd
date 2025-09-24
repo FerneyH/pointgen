@@ -5,22 +5,26 @@
 \title{Population Estimates by Age Group from Census Bureau}
 \usage{
 get_census_population(
-  geography,
+  geography = c("state", "county", "cbsa",
+    "metropolitan statistical area/micropolitan statistical area",
+    "combined statistical area"),
   breakdown = "AGEGROUP",
-  age_group = "65to84",
+  age_group = "Total",
   state = NULL,
   county = NULL,
   geometry = TRUE,
+  vintage = 2024,
   ...
 )
 }
 \arguments{
-\item{geography}{The geography of your data. Available geographies for the most
-recent data vintage are listed \href{https://api.census.gov/data/2019/pep/population/geography.html}{here}. "cbsa" may be used an alias for "metropolitan
-statistical area/micropolitan statistical area".}
+\item{geography}{The geography of your data.
 
-\item{breakdown}{The population breakdown(s).
-Acceptable values are \code{AGEGROUP}, \code{"RACE"},
+Available geographies include: 'state', 'county', 'cbsa', 'combined statistical area'
+
+"cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
+
+\item{breakdown}{The population breakdown(s). Acceptable values are \code{AGEGROUP}, \code{"RACE"},
 \code{"SEX"}, and \code{"HISP"}.}
 
 \item{age_group}{Character keywords (e.g., \code{"65plus"},
@@ -28,14 +32,16 @@ Acceptable values are \code{AGEGROUP}, \code{"RACE"},
 \code{get_age_group} function.}
 
 \item{state}{The state for which the data is requested. State names, postal codes, and FIPS
-codes are accepted. Defaults to NULL.}
+codes are accepted. Default to NULL.}
 
-\item{county}{The county for which the data is requested. County names and FIPS codes
-are accepted. Must be combined with a value supplied to ‘state‘. Defaults to NULL.}
+\item{county}{The county for which the data is requested. County FIP codes
+are accepted.}
 
-\item{geometry}{if FALSE (the default), return a regular tibble of ACS data. if TRUE, uses
+\item{geometry}{if FALSE (the default), return a regular tibble. if TRUE, uses
 the tigris package to return an sf tibble with simple feature geometry in the
 ‘geometry‘ column.}
+
+\item{vintage}{Vintage year; see tidycensus for details.}
 
 \item{...}{Additional arguments passed to \code{tidycensus::get_estimates()}.}
 }
@@ -50,13 +56,16 @@ A list of data frames, one per strata. Each data frame contains:
 }
 \description{
 A helper function that uses \code{tidycensus::get_estimates()} to obtain
-U.S. Census Bureau Population Estimates data.The functions allows filtering by
+U.S. Census Bureau Population Estimates. The function allows filtering by
 age group, race, sex, and Hispanic origin.
 }
 \examples{
-get_census_population(geography="county",breakdown=c("AGEGROUP"))
+get_census_population(geography="county")
 get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"))
+get_census_population(geography="state",breakdown=c("AGEGROUP","SEX"),state="Alabama")
 get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"),state="01", county ="001")
+get_census_population(geography="cbsa",breakdown=c("AGEGROUP","SEX"))
+get_census_population(geography="combined statistical area")
 }
 \references{
 \insertRef{Rpack:bibtex}{Rdpack}

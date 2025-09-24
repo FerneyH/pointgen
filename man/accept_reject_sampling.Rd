@@ -4,7 +4,14 @@
 \alias{accept_reject_sampling}
 \title{Accept-Reject Sampling for Spatial Points}
 \usage{
-accept_reject_sampling(dataset, boundary, res_pixel, output = data.frame())
+accept_reject_sampling(
+  dataset,
+  boundary,
+  res_pixel,
+  output = data.frame(),
+  max_iter = 100,
+  iter = 1
+)
 }
 \arguments{
 \item{dataset}{Data frame containing at least the following columns:
@@ -13,15 +20,19 @@ accept_reject_sampling(dataset, boundary, res_pixel, output = data.frame())
 \item \code{y}: Latitude of the centroid of the population density cell.
 \item \code{labels} Label assigned to each generated event.
 \item \code{geoid}: Unique geographic identifier.
-\item \code{display_name}: Name of the county.
+\item \code{display_name}: Name.
 }}
 
-\item{boundary}{State or county boundary. See get_boundary function.}
+\item{boundary}{Geographic boundary boundary. See get_boundary function.}
 
 \item{res_pixel}{Numeric value specifying the resolution of sampling around each centroid (in degrees).
 Determines the uniform sampling range around \code{x} and \code{y}.}
 
 \item{output}{Optional data frame for storing generated results. By default data.frame()}
+
+\item{max_iter}{The maximum number of iterations the algorithm will attempt. By default 100.}
+
+\item{iter}{An internal counter that tracks the current iteration number}
 }
 \value{
 A data frame containing the accepted points with columns:

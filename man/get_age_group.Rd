@@ -11,7 +11,7 @@ get_age_group(age_group = "total")
 \itemize{
 \item Keywords from the dictionary above.
 \item Open-ended notation like \code{"65plus"}.
-\item Ranges like \code{"15to69"} (validated against Census bins).
+\item Ranges like \code{"15to69"}.
 \item Numeric codes 0–18 (see dictionary).
 }}
 }

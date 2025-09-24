@@ -4,23 +4,25 @@
 #' U.S. Census Bureau Population Estimates. The function allows filtering by
 #' age group, race, sex, and Hispanic origin.
 #' 
-#' @param geography The geography of your data. Available geographies for the most 
-#' recent data vintage are listed \href{https://api.census.gov/data/2019/pep/population/geography.html}{here}. "cbsa" may be used an alias for "metropolitan 
-#' statistical area/micropolitan statistical area".
-
-#' @param breakdown The population breakdown(s). 
-#'   Acceptable values are \code{AGEGROUP}, \code{"RACE"}, 
+#' @param geography The geography of your data. 
+#' 
+#' Available geographies include: 'state', 'county', 'cbsa', 'combined statistical area'
+#' 
+#' "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area". 
+#'
+#' @param breakdown The population breakdown(s). Acceptable values are \code{AGEGROUP}, \code{"RACE"}, 
 #'   \code{"SEX"}, and \code{"HISP"}.
 #' @param age_group Character keywords (e.g., \code{"65plus"}, 
 #'   \code{"15to69"}) or numeric code as defined by the U.S. Census Bureau. See arguments for
 #'   \code{get_age_group} function.
 #' @param state The state for which the data is requested. State names, postal codes, and FIPS
-#' codes are accepted. Defaults to NULL.
+#' codes are accepted. Default to NULL.
 #' @param county The county for which the data is requested. County FIP codes
 #' are accepted.
-#' @param geometry if FALSE (the default), return a regular tibble of ACS data. if TRUE, uses 
+#' @param geometry if FALSE (the default), return a regular tibble. if TRUE, uses 
 #' the tigris package to return an sf tibble with simple feature geometry in the
 #' ‘geometry‘ column.
+#' @param vintage Vintage year; see tidycensus for details.
 #' @param ... Additional arguments passed to \code{tidycensus::get_estimates()}.
 #'
 #' @return 
@@ -45,19 +47,26 @@
 #' 
 #' 
 #' @examples
-#' get_census_population(geography="county",breakdown=c("AGEGROUP"))
+#' get_census_population(geography="county")
 #' get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"))
 #' get_census_population(geography="state",breakdown=c("AGEGROUP","SEX"),state="Alabama")
 #' get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"),state="01", county ="001")
+#' get_census_population(geography="cbsa",breakdown=c("AGEGROUP","SEX"))
+#' get_census_population(geography="combined statistical area")
 #' @export
 
-get_census_population <- function(geography,
+get_census_population <- function(geography=c("state", "county", "cbsa",
+                                              "metropolitan statistical area/micropolitan statistical area", 
+                                              "combined statistical area"),
                                   breakdown="AGEGROUP",
                                   age_group = "Total",
                                   state = NULL,
                                   county = NULL,
                                   geometry = TRUE,
+                                  vintage = 2024,
                                   ...){
+  
+  geography <- match.arg(geography)
   # Age groups
   codes<-unlist(get_age_group(age_group))
   
@@ -73,7 +82,7 @@ get_census_population <- function(geography,
     state=state, 
     county=county, 
     geometry=geometry,
-    vintage   = 2024,
+    vintage= vintage,
     ...)
 
 

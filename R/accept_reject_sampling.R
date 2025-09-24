@@ -19,7 +19,8 @@
 #' @param res_pixel Numeric value specifying the resolution of sampling around each centroid (in degrees). 
 #' Determines the uniform sampling range around \code{x} and \code{y}.
 #' @param output Optional data frame for storing generated results. By default data.frame()
-#'
+#' @param max_iter The maximum number of iterations the algorithm will attempt. By default 100.
+#' @param iter An internal counter that tracks the current iteration number
 #' @return A data frame containing the accepted points with columns:
 #' \code{longitude}, \code{latitude}, \code{labels}, \code{geoid}, \code{display_name}.
 #'
@@ -43,7 +44,7 @@
 #' @export
 
 
-accept_reject_sampling <- function(dataset, boundary, res_pixel,output=data.frame()) {
+accept_reject_sampling <- function(dataset, boundary, res_pixel,output=data.frame(), max_iter = 100, iter = 1) {
   
   if (!all(c("x", "y", "geoid") %in% names(dataset))) {
     stop("'dataset' must contain the columns: x, y, labels, geoid")
@@ -51,7 +52,10 @@ accept_reject_sampling <- function(dataset, boundary, res_pixel,output=data.fram
   if (!is.numeric(res_pixel) || length(res_pixel) != 1 || res_pixel <= 0) {
     stop("'res_pixel' must be a single positive numeric value")
   }
-  
+  if (iter > max_iter) {
+    warning("Maximum iterations reached; some points may remain outside boundaries")
+    return(output)
+  }
  
   # Generate random coordinates
   datatemp <- dataset %>% dplyr::mutate(
@@ -62,22 +66,25 @@ accept_reject_sampling <- function(dataset, boundary, res_pixel,output=data.fram
   geometry <- sf::st_as_sf(datatemp, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE)$geometry
   
   boundary <- st_transform(boundary, crs = st_crs(geometry))
-  dataset$intercept <- sf::st_intersects(geometry, boundary, sparse = FALSE) %>% as.vector()
+  
+  boundary<-left_join(datatemp,boundary,by="geoid")
+  
+  dataset$intercept <-  as.logical(mapply(sf::st_within, geometry, boundary$geometry))
    
   
   # Keep valid points 
   valid_points <- dataset %>%
-  dplyr::filter(intercept == TRUE)%>%select(-c("intercept"))
+  dplyr::filter(intercept == TRUE)%>%dplyr::select(-c("intercept"))
   
   output <- rbind(output, valid_points)
   
   # Remaining points 
-  temp <- dataset %>% dplyr::filter(intercept == FALSE)
+  temp <- dataset %>% dplyr::filter(intercept != TRUE)
   
   if (nrow(temp) == 0) {
     return(output)
   }
   
   # Recursive call
-  accept_reject_sampling(temp, boundary, res_pixel,output)
+  accept_reject_sampling(temp, boundary, res_pixel,output,max_iter = max_iter, iter=iter + 1)
 }
