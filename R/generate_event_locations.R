@@ -169,6 +169,6 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
   sampled_points<-accept_reject_sampling(random_events_per_cell,boundary,res)
     
   
-  return(list(events=random_events_per_cell,geometry=boundary))
+  return(list(events=sampled_points,geometry=boundary))
 }
 
