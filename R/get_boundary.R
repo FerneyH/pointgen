@@ -4,7 +4,7 @@
 #' units, including states, counties, ZIP Code Tabulation Areas (ZCTAs), and 
 #' metropolitan areas.
 #'
-#' @param geography Character string specifying the boundary type from the tigirs package. 
+#' @param geography Character string specifying the boundary type from the tigris package. 
 #' 
 #' Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
 #' 
