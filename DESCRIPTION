@@ -1,4 +1,4 @@
-Package: gdp
+Package: pointgen
 Title: A Simulated Set of Geospatial Events/Patients
 Version: 0.0.1
 Authors@R: 
