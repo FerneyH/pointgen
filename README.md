@@ -1,0 +1,5 @@
+## Minimal example
+
+``` r
+
+```
