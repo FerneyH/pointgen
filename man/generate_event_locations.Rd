@@ -16,18 +16,17 @@ generate_event_locations(
   labels = NULL,
   probs = NULL,
   time = 1,
-  warn = TRUE,
   ...
 )
 }
 \arguments{
-\item{geography}{Character string specifying the boundary type from the tigirs package.
+\item{geography}{Character string specifying the boundary type from the tigris package.
 
 Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
 
-"cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
+"cbsa" is used as alias for "metropolitan statistical area/  statistical area".}
 
-\item{rate}{Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.}
+\item{rate}{Data frame with event rate \code{event_rate} and unique geographic identifier \code{GEOID}.}
 
 \item{population}{List with \code{GEOID} and estimated population \code{count}
 for the target rate.}
@@ -50,17 +49,15 @@ codes are accepted. Default to \code{NULL}.}
 
 \item{time}{Number of time periods to generate. By default 1.}
 
-\item{warn}{Logical. If TRUE, display warnings during simulation.}
-
 \item{...}{Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.}
 }
 \value{
 A data frame of generated locations with:
 \itemize{
-\item \code{longitude} Longitude.
-\item \code{latitude} Latitude.
-\item \code{county_fip} Unique county-level geographic identifier.
-\item \code{label} Label assigned to each generated event.
+\item \code{longitude}.
+\item \code{latitude}.
+\item \code{geoid:} Unique geographic identifier.
+\item \code{label:} Label assigned to each generated event.
 }
 }
 \description{
@@ -83,7 +80,7 @@ A recursive accept-reject algorithm based on county or state boundaries ensures 
 generated points fall inside the target polygons while preserving the target counts and proportions.
 }
 \examples{
-library(gdp)
+library(pointgen)
 data(Stroke_Rate)
 population<-get_census_population(geography="county")
 strokes<-generate_event_locations(geography="county",
@@ -93,18 +90,17 @@ strokes<-generate_event_locations(geography="county",
                                   control = list(size=10),
                                   state = "19")
 
-
 }
 \references{
 \insertRef{Rpack:bibtex}{Rdpack}
 
-\insertRef{R-exactextractr}{gdp}
+\insertRef{R-exactextractr}{pointgen}
 
-\insertRef{R-purrr}{gdp}
+\insertRef{R-purrr}{pointgen}
 
-\insertRef{R-tigris}{gdp}
+\insertRef{R-tigris}{pointgen}
 
-\insertRef{R-geodata}{gdp}
+\insertRef{R-geodata}{pointgen}
 
-\insertRef{R-dplyr}{gdp}
+\insertRef{R-dplyr}{pointgen}
 }

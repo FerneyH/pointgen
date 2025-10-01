@@ -50,7 +50,7 @@ Release date: June 2024):
 }
 }
 \examples{
-library(gdp)
+library(pointgen)
 get_age_group("65plus")
 get_age_group("65to79")
 get_age_group(1)

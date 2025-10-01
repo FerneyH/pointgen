@@ -34,13 +34,6 @@
 #' @import dplyr 
 #' @import sf
 #' 
-#' @references
-#' \insertRef{Rpack:bibtex}{Rdpack}
-#'  
-#' \insertRef{R-dplyr}{gdp}
-#' 
-#' \insertRef{R-sf}{gdp}
-#' 
 #' @export
 
 

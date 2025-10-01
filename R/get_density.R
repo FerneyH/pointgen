@@ -33,9 +33,25 @@
 #' @importFrom exactextractr exact_extract
 #' @import dplyr
 #' 
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{R-exactextractr}{pointgen}
+#' 
+#' \insertRef{R-geodata}{pointgen}
+#' 
+#' \insertRef{R-dplyr}{pointgen}
+#' 
+#' 
+#' 
 #' @export
 #' 
-get_density <- function(geography=c("state", "county", "zcta", "cbsa","combined statistical area"),state=NULL, county=NULL, year = 2020, res = 0.5, path = tempdir(), ...) {
+get_density <- function(geography=c("state", "county", "zcta", "cbsa","combined statistical area"),
+                        state=NULL, 
+                        county=NULL, 
+                        year = 2020, 
+                        res = 0.5, 
+                        path = tempdir(), ...) {
   
   
   geography <- match.arg(geography)

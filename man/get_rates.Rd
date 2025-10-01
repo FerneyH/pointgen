@@ -14,28 +14,25 @@ get_rates(
 )
 }
 \arguments{
-\item{rate}{List with event rate \code{event_rate} and \code{GEOID}.}
+\item{rate}{List with event rate \code{event_rate} and unique geographic identifier \code{GEOID}.}
 
 \item{population}{List with \code{GEOID} and estimated population \code{count}
 for the target rate.}
 
-\item{rate_per}{multiplier constant (e.g., events per 1,000 individuals).
-Default to \code{1000}.}
+\item{rate_per}{Multiplier constant (e.g., events per 1,000 individuals). Default to \code{1000}.}
 
-\item{state}{The state for which the data is requested. State names, postal codes,
-and FIPS codes are accepted. Default to \code{NULL}.}
+\item{state}{The state for which the data is requested. State names, postal codes, and FIPS codes are accepted. Default to \code{NULL}.}
 
-\item{county}{The county for which the data is requested. FIPS
-codes are accepted. Default to \code{NULL}.}
+\item{county}{The county for which the data is requested. FIPS codes are accepted. Default to \code{NULL}.}
 
 \item{time}{Number of time periods to generate. Default to \code{1}.}
 }
 \value{
 A list with:
 \itemize{
-\item \code{data} A data frame of geographic regions with event rates, population,
+\item \code{data:} A data frame of geographic regions with event rates, population,
 and estimated counts.
-\item \code{boundary} An \code{sf} object of the requested state or county
+\item \code{boundary:} An \code{sf} object of the requested state or county
 boundary.
 }
 }
@@ -44,10 +41,18 @@ Combines event rates, population, and geographic regions into a single object fo
 simulation.
 }
 \examples{
+library(pointgen)
 data(Stroke_Rate)
 pop<-get_census_population(geography="county",age_group = "65plus")
 get_rates(rate = Stroke_Rate,population=pop)
 get_rates(rate = Stroke_Rate,population=pop,state = "AL")
 get_rates(rate = Stroke_Rate,population=pop,state = "01",county = "001")
 
+}
+\references{
+\insertRef{Rpack:bibtex}{Rdpack}
+
+\insertRef{R-tigris}{pointgen}
+
+\insertRef{R-dplyr}{pointgen}
 }

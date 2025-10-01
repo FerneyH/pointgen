@@ -4,27 +4,24 @@
 #' Combines event rates, population, and geographic regions into a single object for 
 #' simulation. 
 #' 
-#' @param rate List with event rate \code{event_rate} and \code{GEOID}.
+#' @param rate List with event rate \code{event_rate} and unique geographic identifier \code{GEOID}.
 #' @param population List with \code{GEOID} and estimated population \code{count}
 #' for the target rate.
-#'  
-#' @param rate_per multiplier constant (e.g., events per 1,000 individuals). 
-#'   Default to \code{1000}.  
-#' @param state The state for which the data is requested. State names, postal codes, 
-#'   and FIPS codes are accepted. Default to \code{NULL}.
-#' @param county The county for which the data is requested. FIPS 
-#'   codes are accepted. Default to \code{NULL}.
+#' @param rate_per Multiplier constant (e.g., events per 1,000 individuals). Default to \code{1000}.  
+#' @param state The state for which the data is requested. State names, postal codes, and FIPS codes are accepted. Default to \code{NULL}.
+#' @param county The county for which the data is requested. FIPS codes are accepted. Default to \code{NULL}.
 #' @param time Number of time periods to generate. Default to \code{1}.
 #'
 #' @return A list with:
 #' \itemize{
-#'   \item \code{data} A data frame of geographic regions with event rates, population, 
+#'   \item \code{data:} A data frame of geographic regions with event rates, population, 
 #'   and estimated counts.
-#'   \item \code{boundary} An \code{sf} object of the requested state or county 
+#'   \item \code{boundary:} An \code{sf} object of the requested state or county 
 #'   boundary.
 #' }
 #'
 #' @examples
+#' library(pointgen)
 #' data(Stroke_Rate)
 #' pop<-get_census_population(geography="county",age_group = "65plus")
 #' get_rates(rate = Stroke_Rate,population=pop)
@@ -33,6 +30,14 @@
 #'
 #' @import dplyr
 #' @import tigris
+#' 
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{R-tigris}{pointgen}
+#' 
+#' \insertRef{R-dplyr}{pointgen}
+#' 
 #' @export
 #' 
 get_rates <- function(rate,

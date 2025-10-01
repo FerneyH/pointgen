@@ -4,8 +4,8 @@
 #' 
 #' Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
 #' 
-#' "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".
-#' @param rate Data frame with event rate \code{event_rate} and county FIP \code{county_fip}.
+#' "cbsa" is used as alias for "metropolitan statistical area/  statistical area".
+#' @param rate Data frame with event rate \code{event_rate} and unique geographic identifier \code{GEOID}.
 #' @param family A distribution family used to generate event counts. Options include \code{poisson} or \code{negative_binomial}.
 #' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
 #' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).Default to \code{1000}.
@@ -18,16 +18,27 @@
 #' @param labels Label assigned to each generated event.
 #' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
 #' @param time Number of time periods to generate. By default 1.
-#' @param warn Logical. If TRUE, display warnings during simulation.
 #' @param ... Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.
 #' @return A data frame of generated locations with:
 #' \itemize{
-#'   \item \code{longitude} Longitude.
-#'   \item \code{latitude} Latitude.
-#'   \item \code{county_fip} Unique county-level geographic identifier.
-#'   \item \code{label} Label assigned to each generated event.
+#'   \item \code{longitude}.
+#'   \item \code{latitude}.
+#'   \item \code{geoid:} Unique geographic identifier.
+#'   \item \code{label:} Label assigned to each generated event.
 #' }
 #' 
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{R-exactextractr}{pointgen}
+#' 
+#' \insertRef{R-purrr}{pointgen}
+#' 
+#' \insertRef{R-tigris}{pointgen}
+#' 
+#' \insertRef{R-geodata}{pointgen}
+#' 
+#' \insertRef{R-dplyr}{pointgen}
 #' 
 #' @details
 #'
@@ -46,7 +57,7 @@
 #' A recursive accept-reject algorithm based on county or state boundaries ensures that all
 #' generated points fall inside the target polygons while preserving the target counts and proportions.
 #' 
-#' 
+#'
 #' @importFrom Rdpack reprompt
 #' @importFrom stats rnbinom rpois
 #' @importFrom exactextractr exact_extract
@@ -55,22 +66,9 @@
 #' @import dplyr
 #' @import tigris
 #' 
-#' @references 
-#' \insertRef{Rpack:bibtex}{Rdpack}
-#' 
-#' \insertRef{R-exactextractr}{gdp}
-#' 
-#' \insertRef{R-purrr}{gdp}
-#' 
-#' \insertRef{R-tigris}{gdp}
-#' 
-#' \insertRef{R-geodata}{gdp}
-#' 
-#' \insertRef{R-dplyr}{gdp}
-#' 
 #' 
 #' @examples
-#' library(gdp)
+#' library(pointgen)
 #' data(Stroke_Rate)
 #' population<-get_census_population(geography="county")
 #' strokes<-generate_event_locations(geography="county",
@@ -79,7 +77,6 @@
 #'                                   family = "negative_binomial",
 #'                                   control = list(size=10),
 #'                                   state = "19")
-#' 
 #' 
 #' @export
 
@@ -95,7 +92,6 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
                                      labels = NULL,
                                      probs = NULL,
                                      time = 1,
-                                     warn = TRUE,
                                      ...) {
   
   geography <- match.arg(geography)
@@ -116,9 +112,7 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
     }
   }
   
-  if(!is.logical(warn) || length(warn) != 1) stop("warn must be TRUE or FALSE")
-  
-  
+
   datatemp<-get_rates(rate = rate,population=population, rate_per=rate_per,state = state,county = county)
 
   

@@ -12,7 +12,7 @@
 #' 
 #' @param state A state name, postal code, or FIPS code. Required for 
 #'   county and place boundaries.
-#' @param county A 3-digit county FIPS code (character). 
+#' @param county A 3-digit county FIPS code (e.g "001"). 
 #' @param ... Additional arguments passed to the underlying \pkg{tigris} 
 #'   functions.
 #'
@@ -37,6 +37,13 @@
 #' # Core-Based Statistical Areas
 #' get_boundary("cbsa")
 #'
+#' @import tigris
+#' 
+#' @references 
+#' \insertRef{Rpack:bibtex}{Rdpack}
+#' 
+#' \insertRef{R-tigris}{pointgen}
+#'  
 #'
 #' @export
 

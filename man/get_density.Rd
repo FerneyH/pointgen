@@ -15,7 +15,7 @@ get_density(
 )
 }
 \arguments{
-\item{geography}{Character string specifying the boundary type from the tigirs package.
+\item{geography}{Character string specifying the boundary type from the tigris package.
 
 Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
 
@@ -53,4 +53,13 @@ get_density(geography="state")
 get_density(geography="state",state="01")
 get_density(geography="county",state="01",county="001")
 
+}
+\references{
+\insertRef{Rpack:bibtex}{Rdpack}
+
+\insertRef{R-exactextractr}{pointgen}
+
+\insertRef{R-geodata}{pointgen}
+
+\insertRef{R-dplyr}{pointgen}
 }

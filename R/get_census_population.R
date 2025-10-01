@@ -10,7 +10,7 @@
 #' 
 #' "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area". 
 #'
-#' @param breakdown The population breakdown(s). Acceptable values are \code{AGEGROUP}, \code{"RACE"}, 
+#' @param breakdown The population breakdown(s). Acceptable values are \code{"AGEGROUP"}, \code{"RACE"}, 
 #'   \code{"SEX"}, and \code{"HISP"}.
 #' @param age_group Character keywords (e.g., \code{"65plus"}, 
 #'   \code{"15to69"}) or numeric code as defined by the U.S. Census Bureau. See arguments for
@@ -19,7 +19,7 @@
 #' codes are accepted. Default to NULL.
 #' @param county The county for which the data is requested. County FIP codes
 #' are accepted.
-#' @param geometry if FALSE (the default), return a regular tibble. if TRUE, uses 
+#' @param geometry If FALSE (the default), return a regular tibble. if TRUE, uses 
 #' the tigris package to return an sf tibble with simple feature geometry in the
 #' ‘geometry‘ column.
 #' @param vintage Vintage year; see tidycensus for details.
@@ -27,11 +27,11 @@
 #'
 #' @return 
 #' A list of data frames, one per strata. Each data frame contains:  
-#' \describe{
-#'   \item{GEOID}{Unique geographic identifier.}
-#'   \item{Name}{County or state name.}
-#'   \item{population}{Estimated population for the given strata.}
-#'   \item{age_group}{Age group.}
+#' \itemize{
+#'   \item \code{geoid:} Unique geographic identifier.
+#'   \item \code{name:} County or state name.
+#'   \item \code{population:} Estimated population for the given strata.
+#'   \item \code{age_group:} Age group.
 #' }
 #' 
 #' @importFrom Rdpack reprompt
@@ -41,9 +41,9 @@
 #' @references  
 #' \insertRef{Rpack:bibtex}{Rdpack}
 #' 
-#' \insertRef{R-dplyr}{gdp}
+#' \insertRef{R-dplyr}{pointgen}
 #' 
-#' \insertRef{R-tidycensus}{gdp}
+#' \insertRef{R-tidycensus}{pointgen}
 #' 
 #' 
 #' @examples
@@ -53,11 +53,10 @@
 #' get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"),state="01", county ="001")
 #' get_census_population(geography="cbsa",breakdown=c("AGEGROUP","SEX"))
 #' get_census_population(geography="combined statistical area")
+#' 
 #' @export
 
-get_census_population <- function(geography=c("state", "county", "cbsa",
-                                              "metropolitan statistical area/micropolitan statistical area", 
-                                              "combined statistical area"),
+get_census_population <- function(geography=c("state", "county", "cbsa","combined statistical area"),
                                   breakdown="AGEGROUP",
                                   age_group = "Total",
                                   state = NULL,
@@ -70,7 +69,7 @@ get_census_population <- function(geography=c("state", "county", "cbsa",
   # Age groups
   codes<-unlist(get_age_group(age_group))
   
-  # Age group equal to total is not consistent through states and counties
+  # Age group equal to total is not consistent through counties
   if(age_group == "Total" && is.null(county)){codes<-c(1:18)}
   
 

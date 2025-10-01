@@ -5,9 +5,7 @@
 \title{Population Estimates by Age Group from Census Bureau}
 \usage{
 get_census_population(
-  geography = c("state", "county", "cbsa",
-    "metropolitan statistical area/micropolitan statistical area",
-    "combined statistical area"),
+  geography = c("state", "county", "cbsa", "combined statistical area"),
   breakdown = "AGEGROUP",
   age_group = "Total",
   state = NULL,
@@ -24,7 +22,7 @@ Available geographies include: 'state', 'county', 'cbsa', 'combined statistical 
 
 "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
 
-\item{breakdown}{The population breakdown(s). Acceptable values are \code{AGEGROUP}, \code{"RACE"},
+\item{breakdown}{The population breakdown(s). Acceptable values are \code{"AGEGROUP"}, \code{"RACE"},
 \code{"SEX"}, and \code{"HISP"}.}
 
 \item{age_group}{Character keywords (e.g., \code{"65plus"},
@@ -37,7 +35,7 @@ codes are accepted. Default to NULL.}
 \item{county}{The county for which the data is requested. County FIP codes
 are accepted.}
 
-\item{geometry}{if FALSE (the default), return a regular tibble. if TRUE, uses
+\item{geometry}{If FALSE (the default), return a regular tibble. if TRUE, uses
 the tigris package to return an sf tibble with simple feature geometry in the
 ‘geometry‘ column.}
 
@@ -47,11 +45,11 @@ the tigris package to return an sf tibble with simple feature geometry in the
 }
 \value{
 A list of data frames, one per strata. Each data frame contains:
-\describe{
-\item{GEOID}{Unique geographic identifier.}
-\item{Name}{County or state name.}
-\item{population}{Estimated population for the given strata.}
-\item{age_group}{Age group.}
+\itemize{
+\item \code{geoid:} Unique geographic identifier.
+\item \code{name:} County or state name.
+\item \code{population:} Estimated population for the given strata.
+\item \code{age_group:} Age group.
 }
 }
 \description{
@@ -66,11 +64,12 @@ get_census_population(geography="state",breakdown=c("AGEGROUP","SEX"),state="Ala
 get_census_population(geography="county",breakdown=c("AGEGROUP","SEX"),state="01", county ="001")
 get_census_population(geography="cbsa",breakdown=c("AGEGROUP","SEX"))
 get_census_population(geography="combined statistical area")
+
 }
 \references{
 \insertRef{Rpack:bibtex}{Rdpack}
 
-\insertRef{R-dplyr}{gdp}
+\insertRef{R-dplyr}{pointgen}
 
-\insertRef{R-tidycensus}{gdp}
+\insertRef{R-tidycensus}{pointgen}
 }

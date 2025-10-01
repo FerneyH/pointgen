@@ -12,7 +12,7 @@ get_boundary(
 )
 }
 \arguments{
-\item{geography}{Character string specifying the boundary type from the tigirs package.
+\item{geography}{Character string specifying the boundary type from the tigris package.
 
 Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
 
@@ -21,7 +21,7 @@ Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined stat
 \item{state}{A state name, postal code, or FIPS code. Required for
 county and place boundaries.}
 
-\item{county}{A 3-digit county FIPS code (character).}
+\item{county}{A 3-digit county FIPS code (e.g "001").}
 
 \item{...}{Additional arguments passed to the underlying \pkg{tigris}
 functions.}
@@ -53,5 +53,9 @@ get_boundary("zcta",starts_with = c("37", "38", "72"))
 # Core-Based Statistical Areas
 get_boundary("cbsa")
 
+}
+\references{
+\insertRef{Rpack:bibtex}{Rdpack}
 
+\insertRef{R-tigris}{pointgen}
 }

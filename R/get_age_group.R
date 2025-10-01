@@ -41,7 +41,7 @@
 #' A numeric vector of valid census AGEGROUP codes.
 #' 
 #' @examples 
-#' library(gdp)
+#' library(pointgen)
 #' get_age_group("65plus")
 #' get_age_group("65to79")
 #' get_age_group(1)
@@ -85,6 +85,7 @@ get_age_group <- function(age_group="total") {
         # Returning the code for that age group
         return(age_dict[[age_group]])
       } 
+    
       else if (grepl("^[0-9]+plus$", age_group)) {
         start_age <- as.numeric(sub("plus", "", age_group))
         if(!(start_age %in% age_low)) stop("Invalid age group: ", age_group)
@@ -92,6 +93,7 @@ get_age_group <- function(age_group="total") {
         if (length(idx) == 0) stop("Invalid age group: ", age_group)
         # Returning the codes for that age group
         return(age_dict[idx])
+        
       } else if (grepl("^[0-9]+to[0-9]+$", age_group)) {
         parts <- as.numeric(unlist(strsplit(age_group, "to")))
         start_age <- parts[1]
@@ -102,13 +104,16 @@ get_age_group <- function(age_group="total") {
         idx <- which(age_low >= start_age & age_low <= end_age)
         # Returning the codes for that age group
         return(age_dict[idx])
+        
       } else {
         stop("Invalid age group keyword: ", age_group)
       }
+    
     } else if (is.numeric(age_group)) {
       if (!(age_group %in% unlist(age_dict))) stop("Invalid numeric age group code: ", age_group)
       # Returning the codes for that age group
       return(age_dict[age_dict==age_group])
+      
     } else {
       stop("age_group must be character or numeric.")
     }

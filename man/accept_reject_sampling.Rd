@@ -50,10 +50,3 @@ The input coordinates \code{x} and \code{y} are the centroids of the population 
 The function generates candidate points by sampling uniformly around these centroids within a square
 of size \code{res_pixel}. Points outside the target polygon are rejected, keeping only valid locations.
 }
-\references{
-\insertRef{Rpack:bibtex}{Rdpack}
-
-\insertRef{R-dplyr}{gdp}
-
-\insertRef{R-sf}{gdp}
-}
