@@ -76,6 +76,8 @@
 #'                                   population = population,
 #'                                   family = "negative_binomial",
 #'                                   control = list(size=10),
+#'                                   labels=c("LVO","Non-LVO"),
+#'                                   probs=c(0.6,0.4),
 #'                                   state = "19")
 #' 
 #' @export
@@ -97,7 +99,7 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
   geography <- match.arg(geography)
   # Sanity checks
   if (is.null(labels) && is.null(probs)) {
-    labels <- "event"
+    labels <- "Event"
     probs  <- 1
   } else if (!is.null(labels) && is.null(probs)) {
     probs <- rep(1 / length(labels), length(labels))
@@ -131,20 +133,20 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
   res=unique(USA_pop_density[[1]]$res_pixel)
   
   # The coverage area is square meters, we need square kilometers
-  USA_pop_density_counties<-USA_pop_density%>%dplyr::bind_rows(.id="geoid")%>%dplyr::mutate(coverage_area=coverage_area/1e6)
+  USA_pop_density_geoid<-USA_pop_density%>%dplyr::bind_rows(.id="geoid")%>%dplyr::mutate(coverage_area=coverage_area/1e6)
   
   # weights for population density
-  USA_pop_density_counties_weights<-USA_pop_density_counties%>%dplyr::group_by(geoid)%>%
+  USA_pop_density_geoid_weights<-USA_pop_density_geoid%>%dplyr::group_by(geoid)%>%
     dplyr::mutate(weight=(value*coverage_area)/sum(value*coverage_area,na.rm = TRUE))%>%
     dplyr::mutate(weight=ifelse(is.na(weight),0,weight))
   
   # Combining density population and datatemp
-  USA_pop_density_counties_weights_mu<-USA_pop_density_counties_weights%>%dplyr::full_join(datatemp,by="geoid")
+  USA_pop_density_geoid_weights_mu<-USA_pop_density_geoid_weights%>%dplyr::full_join(datatemp,by="geoid")
   
   
   
   # Random events, generating labels
-  random_events_per_cell<-USA_pop_density_counties_weights_mu%>%dplyr::ungroup()%>%
+  random_events_per_cell<-USA_pop_density_geoid_weights_mu%>%dplyr::ungroup()%>%
     dplyr::group_split(geoid)%>%
     purrr::map_dfr(., ~ slice_sample(.x,n=unique(.x$mu), weight_by =.x$weight,replace = TRUE))%>%
     dplyr::mutate(labels=sample(labels,length(.$geoid),replace = TRUE,prob = probs))%>%
@@ -160,9 +162,18 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
   names(boundary) <- tolower(names(boundary))
   
   
+  
+  
+  
   sampled_points<-accept_reject_sampling(random_events_per_cell,boundary,res)
     
   
-  return(list(events=sampled_points,geometry=boundary))
+  # Put boundary into an attribute
+  attr(sampled_points, "geometry") <- boundary
+  
+  # Class
+  class(sampled_points) <- c("pointgen", class(sampled_points))
+  
+  return(sampled_points)
 }
 

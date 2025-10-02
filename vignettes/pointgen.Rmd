@@ -1,19 +1,26 @@
 ---
-title: "pointgen"
+title: "Simulating Event Locations with pointgen"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{pointgen}
+  %\VignetteIndexEntry{Simulated Event Locations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+```{r setup, include=FALSE}
+#library(pointgen)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-```{r setup}
-library(pointgen)
-```
+## Introduction
+
+We often need to **simulate locations at granular geographic levels** to test methods, perform spatial analyses, or visualize patterns. The `pointgen` package allows to generate **realistic event locations** for specific geometries (e.g., states or counties), respecting **population density** and **event rates**.
+
+In this vignette, we will explore the `pointgen` package to:
+
+1. Obtain population estimates.  
+2. Simulate event locations over different geometries.  
+4. Plot the results.
