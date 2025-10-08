@@ -1,4 +1,5 @@
 #' @import ggplot2
+#' @method plot pointgen
 #' @export
 plot.pointgen <- function(x,
                           legend_title = "Labels",
@@ -17,9 +18,9 @@ plot.pointgen <- function(x,
     ggplot2::theme_void()
 }
 
-
+#' @method summary pointgen
 #' @export
-summary.pointgen <- function(x) {
+summary.pointgen <- function(x,...) {
   
   # Extract boundary geometry
   boundary <- attr(x, "geometry")

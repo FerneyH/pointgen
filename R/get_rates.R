@@ -63,7 +63,7 @@ get_rates <- function(rate,
   
   # standardize state
   if(!is.null(state)){
-    fips <- tigris::fips_codes |> dplyr::distinct(state, state_name, state_code)
+    fips <- tigris::fips_codes %>% dplyr::distinct(state, state_name, state_code)
    if (state %in% fips$state) {
       state<-sprintf("%02s", fips$state_code[fips$state == state])
     } else if (state %in% fips$state_name) {
