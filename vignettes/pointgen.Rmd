@@ -33,7 +33,7 @@ In this vignette, we will explore the `pointgen` package to:
 3. Simulate event locations over different geometries.  
 4. Plot the results.
 
-### Geography Options
+## Geography Options
 
 The `geography` argument specifies the **type of geographic unit** used for generating event locations. The available options are:
 
