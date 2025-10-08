@@ -6,13 +6,14 @@
 #'
 #' @param geography Character string specifying the boundary type from the tigris package. 
 #' 
-#' Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+#' Available geographies include: 'state', 'county', 'cbsa', 'combined statistical area'
 #' 
 #' "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".
 #' 
 #' @param state A state name, postal code, or FIPS code. Required for 
 #'   county and place boundaries.
 #' @param county A 3-digit county FIPS code (e.g "001"). 
+#' @param cb Logical; if TRUE, returns generalized cartographic boundary shapefiles (simpler geometries). 
 #' @param ... Additional arguments passed to the underlying \pkg{tigris} 
 #'   functions.
 #'
@@ -31,9 +32,6 @@
 #' # Single county by FIPS
 #' get_boundary("county", state = "TX", county = "201")
 #'
-#' # ZIP Code Tabulation Areas (ZCTAs)
-#' get_boundary("zcta",starts_with = c("37", "38", "72"))
-#'
 #' # Core-Based Statistical Areas
 #' get_boundary("cbsa")
 #'
@@ -50,6 +48,7 @@
 get_boundary <- function(geography = c("state", "county", "zcta", "cbsa","combined statistical area"),
                          state = NULL,
                          county = NULL,
+                         cb = TRUE,
                          ...) {
   
   geography <- match.arg(geography)
@@ -66,8 +65,8 @@ get_boundary <- function(geography = c("state", "county", "zcta", "cbsa","combin
     geography,
     state = tigris::states,
     county = tigris::counties,
-    zcta   = tigris::zctas,
-    cbsa   = tigris::core_based_statistical_areas
+    cbsa   = tigris::core_based_statistical_areas,
+    `combined statistical area` = tigris::combined_statistical_areas,
   )
   
   fips<-tigris::fips_codes
@@ -84,7 +83,7 @@ get_boundary <- function(geography = c("state", "county", "zcta", "cbsa","combin
     }
   }  
   
-  boundary <- boundary_fun(...)
+  boundary <- boundary_fun(cb=cb,...)
   
   # Retrieve boundary
   if(!is.null(state) && is.null(county)){

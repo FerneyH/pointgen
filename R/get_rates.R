@@ -54,7 +54,7 @@ get_rates <- function(rate,
   if (!inherits(population, c("list", "data.frame"))) {
     stop("'population' must be a list or a data frame")
   }
-  
+
   
   # standardize names
   population<-dplyr::bind_rows(population)

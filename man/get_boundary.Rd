@@ -8,13 +8,14 @@ get_boundary(
   geography = c("state", "county", "zcta", "cbsa", "combined statistical area"),
   state = NULL,
   county = NULL,
+  cb = TRUE,
   ...
 )
 }
 \arguments{
 \item{geography}{Character string specifying the boundary type from the tigris package.
 
-Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+Available geographies include: 'state', 'county', 'cbsa', 'combined statistical area'
 
 "cbsa" is used as alias for "metropolitan statistical area/micropolitan statistical area".}
 
@@ -22,6 +23,8 @@ Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined stat
 county and place boundaries.}
 
 \item{county}{A 3-digit county FIPS code (e.g "001").}
+
+\item{cb}{Logical; if TRUE, returns generalized cartographic boundary shapefiles (simpler geometries).}
 
 \item{...}{Additional arguments passed to the underlying \pkg{tigris}
 functions.}
@@ -46,9 +49,6 @@ get_boundary("state", state = "TX")
 
 # Single county by FIPS
 get_boundary("county", state = "TX", county = "201")
-
-# ZIP Code Tabulation Areas (ZCTAs)
-get_boundary("zcta",starts_with = c("37", "38", "72"))
 
 # Core-Based Statistical Areas
 get_boundary("cbsa")

@@ -23,6 +23,7 @@
 #' the tigris package to return an sf tibble with simple feature geometry in the
 #' ‘geometry‘ column.
 #' @param vintage Vintage year; see tidycensus for details.
+#' @param progress By default FALSE.
 #' @param ... Additional arguments passed to \code{tidycensus::get_estimates()}.
 #'
 #' @return 
@@ -63,6 +64,7 @@ get_census_population <- function(geography=c("state", "county", "cbsa","combine
                                   county = NULL,
                                   geometry = TRUE,
                                   vintage = 2024,
+                                  progress=FALSE,
                                   ...){
   
   geography <- match.arg(geography)
@@ -82,6 +84,8 @@ get_census_population <- function(geography=c("state", "county", "cbsa","combine
     county=county, 
     geometry=geometry,
     vintage= vintage,
+    message=FALSE,
+    progress=FALSE,
     ...)
 
 

@@ -12,6 +12,7 @@ get_census_population(
   county = NULL,
   geometry = TRUE,
   vintage = 2024,
+  progress = FALSE,
   ...
 )
 }
@@ -40,6 +41,8 @@ the tigris package to return an sf tibble with simple feature geometry in the
 ‘geometry‘ column.}
 
 \item{vintage}{Vintage year; see tidycensus for details.}
+
+\item{progress}{By default FALSE.}
 
 \item{...}{Additional arguments passed to \code{tidycensus::get_estimates()}.}
 }

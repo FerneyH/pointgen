@@ -14,6 +14,7 @@
 #' @param res Resolution of the raster, validvalues are 10, 5, 2.5, and 0.5 (minutes of a degree). Default is \code{0.5}.
 #' @param path Character. Directory path to save the downloaded raster. 
 #'   If \code{NULL}, a temporary directory is used.
+#' @param progress By default FALSE.
 #' @param ... Additional arguments passed to \code{geodata::population()}.
 #'
 #' @return Extracted values of cells from a raster (e.g., population density) within the 
@@ -50,13 +51,14 @@ get_density <- function(geography=c("state", "county", "zcta", "cbsa","combined 
                         state=NULL, 
                         county=NULL, 
                         year = 2020, 
-                        res = 0.5, 
+                        res = 0.5,
+                        progress=FALSE,
                         path = tempdir(), ...) {
   
   
   geography <- match.arg(geography)
   # Getting density
-  density <- geodata::population(year = year, res = res, path = path, ...)
+  density <- geodata::population(year = year, res = res, path = path,progress = FALSE, message=FALSE, ...)
   
   # Getting boundary
   geometry<-get_boundary(geography=geography,state = state, county = county)

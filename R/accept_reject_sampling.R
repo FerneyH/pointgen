@@ -58,9 +58,9 @@ accept_reject_sampling <- function(dataset, boundary, res_pixel,output=data.fram
   # Convert to sf geometry
   geometry <- sf::st_as_sf(datatemp, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE)$geometry
   
-  boundary <- st_transform(boundary, crs = st_crs(geometry))
+  boundary <- sf::st_transform(boundary, crs = sf::st_crs(geometry))
   
-  boundary<-left_join(datatemp,boundary,by="geoid")
+  boundary<-dplyr::left_join(datatemp,boundary,by="geoid")
   
   dataset$intercept <-  as.logical(mapply(sf::st_within, geometry, boundary$geometry))
    

@@ -4,23 +4,19 @@ plot.pointgen <- function(object,
                           legend_title = "Labels",
                           boundary_color = "grey40",
                           boundary_fill= "grey95",
+                          size=0.01,
                           ...) {
   
   boundary <- attr(object, "geometry")
   
   ggplot2::ggplot() +
     ggplot2::geom_sf(data = boundary, fill = boundary_fill, color=boundary_color) +
-    ggplot2::geom_point(data = object, ggplot2::aes(x = x, y = y, color = labels), alpha =0.8, size = 0.03, ...) +
+    ggplot2::geom_point(data = object, ggplot2::aes(x = x, y = y, color = labels), alpha =0.8, size = size, ...) +
     ggplot2::labs(color = legend_title) +
     ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 1.5)))+
     ggplot2::theme_void()
 }
 
-#' @export
-print.pointgen <- function(object) {
-  cat("An 'pointgen' object with", nrow(object), "points\n")
-  invisible(object)
-}
 
 #' @export
 summary.pointgen <- function(object) {

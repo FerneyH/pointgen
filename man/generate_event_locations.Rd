@@ -5,28 +5,33 @@
 \title{A Simulated Set of Events for a Specific State or County.}
 \usage{
 generate_event_locations(
-  geography = c("state", "county", "zcta", "cbsa", "combined statistical area"),
+  geography = c("state", "county", "cbsa", "combined statistical area"),
   rate,
+  rate_per,
   population,
   family = c("poisson", "negative_binomial"),
   control = list(),
-  rate_per = 1000,
   state = NULL,
   county = NULL,
   labels = NULL,
   probs = NULL,
   time = 1,
+  parallel = TRUE,
+  n_cores = 4,
+  progress = FALSE,
   ...
 )
 }
 \arguments{
 \item{geography}{Character string specifying the boundary type from the tigris package.
 
-Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+Available geographies include: 'state', 'county', 'cbsa', 'combined statistical area'
 
 "cbsa" is used as alias for "metropolitan statistical area/  statistical area".}
 
 \item{rate}{Data frame with event rate \code{event_rate} and unique geographic identifier \code{GEOID}.}
+
+\item{rate_per}{Numeric. Rate of events per unit population (e.g., per 1.000).}
 
 \item{population}{List with \code{GEOID} and estimated population \code{count}
 for the target rate.}
@@ -34,8 +39,6 @@ for the target rate.}
 \item{family}{A distribution family used to generate event counts. Options include \code{poisson} or \code{negative_binomial}.}
 
 \item{control}{A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).}
-
-\item{rate_per}{Numeric. Rate of events per unit population (e.g., per 1.000).Default to \code{1000}.}
 
 \item{state}{The state for which the data is requested. State names, postal codes,
 and FIPS codes are accepted. Default to \code{NULL}.}
@@ -48,6 +51,10 @@ codes are accepted. Default to \code{NULL}.}
 \item{probs}{Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.}
 
 \item{time}{Number of time periods to generate. By default 1.}
+
+\item{parallel}{A logical (TRUE/FALSE) argument. If TRUE, the function runs in parallel using multiple cores. Default to \code{TRUE}}
+
+\item{progress}{By default FALSE.}
 
 \item{...}{Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.}
 }
@@ -81,13 +88,16 @@ generated points fall inside the target polygons while preserving the target cou
 }
 \examples{
 library(pointgen)
-data(Stroke_Rate)
+data(stroke_hospitalization)
 population<-get_census_population(geography="county")
 strokes<-generate_event_locations(geography="county",
-                                  rate=Stroke_Rate,
+                                  rate=stroke_hospitalization,
+                                  rate_per=1000,
                                   population = population,
                                   family = "negative_binomial",
                                   control = list(size=10),
+                                  labels=c("LVO","Non-LVO"),
+                                  probs=c(0.6,0.4),
                                   state = "19")
 
 }

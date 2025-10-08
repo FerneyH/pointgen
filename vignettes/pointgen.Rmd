@@ -3,24 +3,202 @@ title: "Simulating Event Locations with pointgen"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Simulated Event Locations}
+  %\VignetteIndexEntry{Simulating Event Locations with pointgen"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
-#library(pointgen)
 library(dplyr)
 library(ggplot2)
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(pointgen)
 ```
 
 ## Introduction
 
-We often need to **simulate locations at granular geographic levels** to test methods, perform spatial analyses, or visualize patterns. The `pointgen` package allows to generate **realistic event locations** for specific geometries (e.g., states or counties), respecting **population density** and **event rates**.
+We often need to simulate locations at granular geographic levels to test methods, perform spatial analyses, or visualize patterns. The pointgen package allows the generation of realistic event locations, integrating population density data, statistical distributions, and spatial boundaries.
+
+
+The main inputs are:
+
+1. **Rates:** Event rates by geographic identifier `GEOID`. 
+2. **Population estimates:** Counts of population by geographic identifier `GEOID`.
+The package can generate U.S. Census population estimates and stratifications for 'state', 'county', 'cbsa', and 'combined statistical area' using `get_census_population()`. Users may also supply custom population data.
+
 
 In this vignette, we will explore the `pointgen` package to:
 
-1. Obtain population estimates.  
-2. Simulate event locations over different geometries.  
+1. Prepare the rates.
+2. Obtain population estimates.  
+3. Simulate event locations over different geometries.  
 4. Plot the results.
+
+### Geography Options
+
+The `geography` argument specifies the **type of geographic unit** used for generating event locations. The available options are:
+
+- `"state"`: Generate events within state boundaries.
+- `"county"`: Generate events within county boundaries.
+- `"cbsa"`: Generate events within Core-Based Statistical Areas (metropolitan and micropolitan areas).
+- `"combined statistical area"`: Generate events within Combined Statistical Areas (aggregated metro areas).
+
+This argument affects:
+
+1. **Population**: Population counts are matched to the selected geographic unit type.
+2. **Rates**: Event rates must correspond to the geographic identifiers (`GEOID`) of the chosen unit type.
+3. **Spatial boundaries**: The geometry used for accept-reject sampling is based on the selected geographic unit.
+
+For example, setting `geography = "state"` will generate events that fall inside state polygons using state-level population and rates.
+
+## Generating Locations at the State Level
+
+
+We will use the dataset `stroke_mortality` available in the package to generate event locations at the state level.  
+This dataset contains stroke mortality rates (per 100,000 total population) from the U.S. Centers for Disease Control and Prevention (CDC) for the year 2023.
+
+The rate dataset must contain the columns:
+
+- `GEOID`: Unique geographic identifier.
+- `event_rate`: The rate of events per population unit.  
+
+We must also provide the `rate_per` argument in the `generate_event_locations()` function to indicate the scale of the rates and **population estimates** at the corresponding `GEOID`. The function `get_census_population()` retrieves population counts from the U.S. Census Bureau and prepares them for use with the rate dataset.
+
+The package provides two example datasets to demonstrate its functionality:
+
+- `stroke_hospitalization`: Hospitalization rates for stroke.
+- `stroke_mortality`: Stroke mortality rates.
+
+We can load these datasets as follows:
+
+```{r,message=FALSE, warning=FALSE, progress=FALSE}
+data("stroke_hospitalization")
+data("stroke_mortality")
+```
+
+### Specific County or State
+
+The `generate_event_locations()` function allows we to restrict the simulation to a specific geographic identifier, such as a single state or county.  
+
+- Use the `state` argument to generate events within a particular state.  
+- Use the `county` argument (if available) to restrict to a specific county.  
+
+This is useful when we only want to simulate events for a subset of the geography rather than the entire dataset.
+
+For example, to generate events  using the negative Binomial distribution only in California:
+
+```{r,message=FALSE, warning=FALSE, results='hide'}
+population2023<-get_census_population(geography="state",state = "California",vintage = 2023)
+
+mortality<-generate_event_locations(geography="state",
+                                   rate=stroke_mortality,
+                                   population = population2023,
+                                   family = "negative_binomial",
+                                   control = list(size=10),
+                                   rate_per = 100000,
+                                   state = "California")
+
+```
+After generating the event locations, we can visualize them using the built-in `plot()` method. The points are plotted over the corresponding geographic boundaries. 
+
+```{r}
+head(mortality)
+```
+
+
+```{r, fig.width=8, fig.height=6}
+plot(mortality)
+```
+
+
+### Locations USA
+
+If we want to generate event locations for all states, we do not need to specify the `state` argument.  The function will automatically simulate events across all states included in the rate and population datasets.
+
+
+```{r,message=FALSE, warning=FALSE, progress=FALSE, results='hide'}
+population2023<-get_census_population(geography="state",vintage = 2023)
+
+mortality<-generate_event_locations(geography="state",
+                                   rate=stroke_mortality,
+                                   population = population2023,
+                                   family = "negative_binomial",
+                                   control = list(size=10),
+                                   rate_per = 100000)
+```
+
+
+```{r, fig.width=8, fig.height=6}
+plot(mortality)
+```
+
+```{r}
+summary(mortality)
+```
+
+**Note:** The previous data generation process does not account for county boundaries because the geometry was specified at the **state level**.  All simulated points are constrained to fall within the state polygon (e.g., California), but their placement does not respect individual county borders. To generate events respecting county boundaries, we would need to set `geography = "county"` and provide county-level population and rate data.
+
+
+## Generating Locations at the County Level
+
+We will use the dataset `stroke_hospitalization` available in the package to generate event locations at the **county level**. This dataset contains hospitalization rates (per 1,000 Medicare beneficiaries aged 65+) from the U.S. Centers for Disease Control and Prevention (CDC).
+
+To simulate events, we need population estimates at the county level for individuals aged 65 and older.  
+The function `get_census_population()` can retrieve these population counts and prepare them for use with the hospitalization rates.
+
+### Locations for a Specific County
+
+When generating events for a specific county, we need to provide both the state and the county.
+
+If we want to assign a label to each one. For example, we might classify events as "LVO" or "Non-LVO" (or any set of categories). We can create a categorical variable with a set of categories and associated probabilities to control how often each label occurs.
+
+For example, to generate stroke hospitalizations for Johnson County in Iowa, with 60% corresponding to "LVO" and 40% to "Non-LVO", we can use:
+
+```{r,message=FALSE, warning=FALSE, progress=FALSE, results='hide'}
+population<-get_census_population(geography="county",age_group="65plus", state="IOWA", county = "103", vintage = 2021)
+
+mortality<-generate_event_locations(geography="county",
+                                   rate=stroke_hospitalization,
+                                   population = population,
+                                   family = "negative_binomial",
+                                   control = list(size=10),
+                                   rate_per = 1000,
+                                   state = "Iowa",
+                                   county = "103",
+                                   labels=c("LVO","Non-LVO"),
+                                   probs=c(0.6,0.4))
+
+```
+
+We can also customize the plot to highlight specific features, adjust labels, colors, or other visual elements to better represent the generated data.
+
+```{r, fig.width=8, fig.height=6}
+plot(mortality,size=1)
+```
+
+
+### Locations for a Specific State
+
+If we want to generate locations for an entire state, we need to provide the state name and omit the county code. This ensures that the generated events cover the whole state rather than being restricted to a specific county.
+
+```{r,message=FALSE, warning=FALSE, progress=FALSE, results='hide'}
+population<-get_census_population(geography="county",age_group="65plus", state="ILLINOIS", vintage = 2021)
+
+hospitalization<-generate_event_locations(geography="county",
+                                   rate=stroke_hospitalization,
+                                   population = population,
+                                   family = "negative_binomial",
+                                   control = list(size=10),
+                                   rate_per = 1000,
+                                   labels=c("LVO","Non-LVO"),
+                                   probs=c(0.6,0.4),
+                                   state = "Illinois")
+
+```
+
+The plot of the generated locations looks like this:
+
+```{r, fig.width=8, fig.height=6,}
+plot(hospitalization)
+```
+
+

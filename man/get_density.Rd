@@ -10,6 +10,7 @@ get_density(
   county = NULL,
   year = 2020,
   res = 0.5,
+  progress = FALSE,
   path = tempdir(),
   ...
 )
@@ -30,6 +31,8 @@ are accepted. Default to \code{NULL}.}
 \item{year}{Year of the population density data. One of 2000, 2005, 2010, 2015, 2020. Default is \code{2020}.}
 
 \item{res}{Resolution of the raster, validvalues are 10, 5, 2.5, and 0.5 (minutes of a degree). Default is \code{0.5}.}
+
+\item{progress}{By default FALSE.}
 
 \item{path}{Character. Directory path to save the downloaded raster.
 If \code{NULL}, a temporary directory is used.}

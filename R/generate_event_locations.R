@@ -2,15 +2,15 @@
 #' 
 #' @param geography Character string specifying the boundary type from the tigris package. 
 #' 
-#' Available geographies include: 'state', 'county', 'cbsa', 'zcta', 'combined statistical area'
+#' Available geographies include: 'state', 'county', 'cbsa', 'combined statistical area'
 #' 
 #' "cbsa" is used as alias for "metropolitan statistical area/  statistical area".
 #' @param rate Data frame with event rate \code{event_rate} and unique geographic identifier \code{GEOID}.
-#' @param family A distribution family used to generate event counts. Options include \code{poisson} or \code{negative_binomial}.
-#' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
-#' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).Default to \code{1000}.
+#' @param rate_per Numeric. Rate of events per unit population (e.g., per 1.000).
 #' @param population List with \code{GEOID} and estimated population \code{count}
 #' for the target rate.
+#' @param family A distribution family used to generate event counts. Options include \code{poisson} or \code{negative_binomial}.
+#' @param control A list of parameters controlling the chosen distribution (e.g., dispersion for \code{negative_binomial}).
 #' @param state The state for which the data is requested. State names, postal codes, 
 #'   and FIPS codes are accepted. Default to \code{NULL}.
 #' @param county The county for which data is requested. FIPS 
@@ -18,6 +18,8 @@
 #' @param labels Label assigned to each generated event.
 #' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
 #' @param time Number of time periods to generate. By default 1.
+#' @param parallel A logical (TRUE/FALSE) argument. If TRUE, the function runs in parallel using multiple cores. Default to \code{TRUE}
+#' @param progress By default FALSE.
 #' @param ... Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.
 #' @return A data frame of generated locations with:
 #' \itemize{
@@ -69,10 +71,11 @@
 #' 
 #' @examples
 #' library(pointgen)
-#' data(Stroke_Rate)
+#' data(stroke_hospitalization)
 #' population<-get_census_population(geography="county")
 #' strokes<-generate_event_locations(geography="county",
-#'                                   rate=Stroke_Rate,
+#'                                   rate=stroke_hospitalization,
+#'                                   rate_per=1000,
 #'                                   population = population,
 #'                                   family = "negative_binomial",
 #'                                   control = list(size=10),
@@ -83,21 +86,38 @@
 #' @export
 
 
-generate_event_locations <- function(geography=c("state", "county", "zcta", "cbsa","combined statistical area"),
+generate_event_locations <- function(geography=c("state", "county", "cbsa","combined statistical area"),
                                      rate,
+                                     rate_per,
                                      population,
                                      family = c("poisson", "negative_binomial"),
                                      control = list(),
-                                     rate_per= 1000,
                                      state = NULL,
                                      county = NULL,
                                      labels = NULL,
                                      probs = NULL,
                                      time = 1,
+                                     parallel=TRUE,
+                                     n_cores=4,
+                                     progress=FALSE,
                                      ...) {
   
   geography <- match.arg(geography)
-  # Sanity checks
+  
+  
+  # standardize names
+  population<-dplyr::bind_rows(population)
+  names(rate) <- tolower(names(rate))
+  names(population) <- tolower(names(population))
+  
+  if (!all(c("event_rate", "geoid") %in% colnames(rate))) {
+    stop("The 'rate' dataset must contain columns 'event_rate' and 'geoid'.")
+  }
+  if (!all(c("count", "geoid") %in% colnames(population))) {
+    stop("'count' and 'geoid' must be provided in the population data")
+  }
+  
+  
   if (is.null(labels) && is.null(probs)) {
     labels <- "Event"
     probs  <- 1
@@ -114,8 +134,11 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
     }
   }
   
+  # progress bar
+  options(purrr.show_progress = progress)
+  
 
-  datatemp<-get_rates(rate = rate,population=population, rate_per=rate_per,state = state,county = county)
+  datatemp<-get_rates(rate = rate,population=population, rate_per=rate_per,state = state,county = county,time=time)
 
   
   # Family distribution
@@ -127,7 +150,7 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
                         negative_binomial = rnbinom(n = rep(1,nrow(datatemp)), mu = datatemp$estimated, size = control$size))
   
   
-  USA_pop_density<-get_density(geography=geography,state = state, county = county)
+  USA_pop_density<-get_density(geography=geography,state = state, county = county,progress=progress)
   
   # Pixel resolution
   res=unique(USA_pop_density[[1]]$res_pixel)
@@ -141,16 +164,17 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
     dplyr::mutate(weight=ifelse(is.na(weight),0,weight))
   
   # Combining density population and datatemp
-  USA_pop_density_geoid_weights_mu<-USA_pop_density_geoid_weights%>%dplyr::full_join(datatemp,by="geoid")
+  USA_pop_density_geoid_weights_mu<-USA_pop_density_geoid_weights%>%dplyr::full_join(datatemp,by="geoid")%>%
+                                                                    dplyr::mutate(mu = ifelse(is.na(mu), 0, mu))
+ 
   
   
-  
-  # Random events, generating labels
+  # Random events, generating labels, excluding Alaska, Puerto Rico, etc
   random_events_per_cell<-USA_pop_density_geoid_weights_mu%>%dplyr::ungroup()%>%
     dplyr::group_split(geoid)%>%
     purrr::map_dfr(., ~ slice_sample(.x,n=unique(.x$mu), weight_by =.x$weight,replace = TRUE))%>%
     dplyr::mutate(labels=sample(labels,length(.$geoid),replace = TRUE,prob = probs))%>%
-    dplyr::select(c("x", "y", "labels", "geoid", "display_name"))
+    dplyr::select(c("x", "y", "labels", "geoid"))%>%dplyr::filter(!(geoid %in% c("66","69","60","02","72","15","78")))
   
   ## Accept-reject sampling
   # Creating the boundary for intersections, it only checks specific county or state
@@ -158,15 +182,38 @@ generate_event_locations <- function(geography=c("state", "county", "zcta", "cbs
   boundary <- get_boundary(geography =geography, state =state, county = county)
   
   
-  boundary <- boundary%>%dplyr::select(GEOID,geometry)%>%st_transform("EPSG:4326")
+  boundary <- boundary%>%dplyr::select(GEOID,geometry)%>%st_transform("EPSG:4326")%>%dplyr::filter(!(GEOID %in% c("66","69","60","02","72","15","78")))
   names(boundary) <- tolower(names(boundary))
   
+  rows<-nrow(random_events_per_cell)
+  
+  ## Using parallel when it is viable
+  if (parallel &&  rows > 5000) {
+  
+   # Split data by ncores
+   split_indices <- split(1:rows, cut(1:rows, breaks = n_cores, labels = FALSE))
+  
+   data_chunks <- lapply(split_indices, function(idx) random_events_per_cell[idx, ])
+  
+   # Create cluster
+   cl <- parallel::makeCluster(n_cores)
+  
+   # Export necessary objects and functions to cluster
+   parallel::clusterExport(cl, varlist = c("accept_reject_sampling"))
+   parallel::clusterEvalQ(cl,{library(dplyr)})
   
   
+   # Run accept_reject_sampling in parallel
+   sampled_points_list <- parallel::parLapply(cl, data_chunks, function(df_chunk){accept_reject_sampling(df_chunk, boundary, res)})
+   # Stop the cluster
+   parallel::stopCluster(cl)
   
+   # Combine results
+   sampled_points <- dplyr::bind_rows(sampled_points_list)}
+  else{
+    sampled_points<-accept_reject_sampling(random_events_per_cell,boundary,res)
+  }
   
-  sampled_points<-accept_reject_sampling(random_events_per_cell,boundary,res)
-    
   
   # Put boundary into an attribute
   attr(sampled_points, "geometry") <- boundary
