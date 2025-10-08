@@ -11,7 +11,7 @@ get_census_population(
   state = NULL,
   county = NULL,
   geometry = TRUE,
-  vintage = 2024,
+  vintage = 2023,
   progress = FALSE,
   ...
 )

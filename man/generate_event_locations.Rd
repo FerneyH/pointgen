@@ -17,7 +17,7 @@ generate_event_locations(
   probs = NULL,
   time = 1,
   parallel = TRUE,
-  n_cores = 4,
+  n_cores = 2,
   progress = FALSE,
   ...
 )
@@ -53,6 +53,8 @@ codes are accepted. Default to \code{NULL}.}
 \item{time}{Number of time periods to generate. By default 1.}
 
 \item{parallel}{A logical (TRUE/FALSE) argument. If TRUE, the function runs in parallel using multiple cores. Default to \code{TRUE}}
+
+\item{n_cores}{Number of cores.}
 
 \item{progress}{By default FALSE.}
 

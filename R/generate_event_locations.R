@@ -19,6 +19,7 @@
 #' @param probs Numeric vector of probabilities corresponding to \code{labels}. If omitted, labels are sampled uniformly.
 #' @param time Number of time periods to generate. By default 1.
 #' @param parallel A logical (TRUE/FALSE) argument. If TRUE, the function runs in parallel using multiple cores. Default to \code{TRUE}
+#' @param n_cores Number of cores.
 #' @param progress By default FALSE.
 #' @param ... Additional arguments passed to \code{tigris::counties()} and \code{geodata::population()}.
 #' @return A data frame of generated locations with:
@@ -98,7 +99,7 @@ generate_event_locations <- function(geography=c("state", "county", "cbsa","comb
                                      probs = NULL,
                                      time = 1,
                                      parallel=TRUE,
-                                     n_cores=4,
+                                     n_cores=2,
                                      progress=FALSE,
                                      ...) {
   

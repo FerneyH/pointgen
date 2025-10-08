@@ -63,7 +63,7 @@ get_census_population <- function(geography=c("state", "county", "cbsa","combine
                                   state = NULL,
                                   county = NULL,
                                   geometry = TRUE,
-                                  vintage = 2024,
+                                  vintage = 2023,
                                   progress=FALSE,
                                   ...){
   

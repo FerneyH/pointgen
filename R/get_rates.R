@@ -22,11 +22,11 @@
 #'
 #' @examples
 #' library(pointgen)
-#' data(Stroke_Rate)
+#' data(stroke_hospitalization)
 #' pop<-get_census_population(geography="county",age_group = "65plus")
-#' get_rates(rate = Stroke_Rate,population=pop)
-#' get_rates(rate = Stroke_Rate,population=pop,state = "AL")
-#' get_rates(rate = Stroke_Rate,population=pop,state = "01",county = "001")
+#' get_rates(rate = stroke_hospitalization,population=pop)
+#' get_rates(rate = stroke_hospitalization,population=pop,state = "AL")
+#' get_rates(rate = stroke_hospitalization,population=pop,state = "01",county = "001")
 #'
 #' @import dplyr
 #' @import tigris

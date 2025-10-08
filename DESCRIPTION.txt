@@ -1,5 +1,5 @@
 Package: pointgen
-Title: A Simulated Set of Geospatial Events
+Title: A Simulated Set of Geospatial Events/Patients
 Version: 0.0.1
 Authors@R: 
  person("Ferney", "Henao-Ceballos", , "fhenaoceballos@uiowa.edu", role = c("aut", "cre"))
